@@ -30,8 +30,10 @@ One MCP server for every product: `/mcp/cca`.
   findings into the session. It measures the default branch's latest pushed commit, never local changes. It pre-approves only its
   own script.
 - **Skills** (`skills/`): `assess` (a written assessment for a developer, management or a buyer), `onboard` (a note for someone new to
-  the codebase), `progress` (how quality has moved, and whether reported fixes held) and `compare` (review a few files yourself, then
-  compare with what the scan found). In each, the scan is your AI's map: it has read the whole repository, its git history and the
+  the codebase), `progress` (how quality has moved, and whether reported fixes held), `compare` (review a few files yourself, then
+  compare with what the scan found), `before-ship` (ready or not yet, and what must be fixed first), `safe-change` (before you change
+  a file: what changes with it, what depends on it, what is already wrong in it) and `review-branch` (a branch's scan against the
+  default branch, and your AI's own reading of the diff). In each, the scan is your AI's map: it has read the whole repository, its git history and the
   vulnerability databases, so your AI knows where to look, then opens those files itself, checks each finding in context and adds
   what only reading shows, keeping what the scan measured apart from what it saw. Your AI uses them when you ask for that kind of
   work; each is the same text the server offers as an MCP prompt of the same name, generated from one source.
@@ -44,3 +46,6 @@ One MCP server for every product: `/mcp/cca`.
 - **MCP server `assay`** (`/mcp/assay`): READ-ONLY. list_codebases, get_codebase, get_report (the decision report's text and
   verdict) and explain_dimension (what a dimension means for a deal and who should care). It changes no code and orders nothing.
   Allow `mcp__plugin_assay_assay__*`.
+- **Skill** `due-diligence`: a memo on one codebase for the people deciding: what you would inherit, the risks that carry a price,
+  what to ask the seller and what the seller should fix or disclose before closing. Where you have the code, your AI opens what the
+  report points to. The same text the server offers as an MCP prompt.

@@ -1,13 +1,17 @@
-# Canine plugins for Claude Code
+# Canine Skills
 
-One marketplace (`canine`): one plugin for Assure, Assert and CCA, and one for Assay.
+Skills and plugins for your AI coding tool from Canine Development, built on what our scans measure. One marketplace (`canine`),
+published as `CanineCC/canine-skills` and staged in Canine's own repository, where every skill is generated from the same source the
+service serves, so the two never differ. Open source (MIT).
 
 ```
-claude plugin marketplace add CanineCC/canine-claude-plugins
+claude plugin marketplace add CanineCC/canine-skills
 claude plugin install cca@canine
 ```
 
-(Inside a session: `/plugin marketplace add CanineCC/canine-claude-plugins`, then `/plugin install cca@canine`.)
+(Inside a session: `/plugin marketplace add CanineCC/canine-skills`, then `/plugin install cca@canine`.)
+
+The skills are plain Markdown (`SKILL.md`), so any AI tool that reads skills can use them; they work through the `cca` MCP server.
 
 ## CCA (for Assure, Assert and CCA)
 
@@ -25,6 +29,10 @@ One MCP server for every product: `/mcp/cca`.
   address is `https://api.canine.dev` unless `CCA_API_URL` says otherwise), waits for the run and reads the scores and open
   findings into the session. It measures the default branch's latest pushed commit, never local changes. It pre-approves only its
   own script.
+- **Skills** (`skills/`): `assess` (a written assessment for a developer, management or a buyer), `onboard` (a note for someone new to
+  the codebase), `progress` (how quality has moved, and whether reported fixes held) and `compare` (review a few files yourself, then
+  compare with what the scan found). Your AI uses them when you ask for that kind of work; each is the same text the server offers as
+  an MCP prompt of the same name, generated from one source.
 - **Reminder:** when a change touches C#, Java, Kotlin or Scala, a Stop hook reminds the agent to run `check_dependencies` before
   reporting the work done. It never blocks. Turn it off with `CCA_NUDGE=off`.
 

@@ -31,8 +31,10 @@ One MCP server for every product: `/mcp/cca`.
   own script.
 - **Skills** (`skills/`): `assess` (a written assessment for a developer, management or a buyer), `onboard` (a note for someone new to
   the codebase), `progress` (how quality has moved, and whether reported fixes held) and `compare` (review a few files yourself, then
-  compare with what the scan found). Your AI uses them when you ask for that kind of work; each is the same text the server offers as
-  an MCP prompt of the same name, generated from one source.
+  compare with what the scan found). In each, the scan is your AI's map: it has read the whole repository, its git history and the
+  vulnerability databases, so your AI knows where to look, then opens those files itself, checks each finding in context and adds
+  what only reading shows, keeping what the scan measured apart from what it saw. Your AI uses them when you ask for that kind of
+  work; each is the same text the server offers as an MCP prompt of the same name, generated from one source.
 - **Reminder:** when a change touches C#, Java, Kotlin or Scala, a Stop hook reminds the agent to run `check_dependencies` before
   reporting the work done. It never blocks. Turn it off with `CCA_NUDGE=off`.
 

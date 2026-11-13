@@ -1,6 +1,6 @@
 {
   "name": "cca",
-  "version": "2.6.0",
+  "version": "2.7.0",
   "description": "The cca MCP server, /cca-fix to fix this repository's findings most important first, /cca-scan to scan it, and the skills assess, onboard, progress and compare",
   "author": {
     "name": "Canine"

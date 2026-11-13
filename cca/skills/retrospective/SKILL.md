@@ -24,5 +24,5 @@ The task: a retrospective of the code's quality over the last two weeks, or sinc
 1. get_trend: the points in the period and the marks inside it. What the code did over the period is the headline at the last point in it minus the first, apart from each mark's move inside it; say that number.
 2. audit: resolutionsRefused (fixes reported done that did not hold), resolutionsImproved, and the queue.
 3. git log over the period yourself: what was worked on, by area; read the commits behind the biggest move in a lens, up or down.
-4. list_findings for the security findings, and get_dimension for the dimension that moved most: what arrived and what left.
+4. list_findings for the security findings now, and get_dimension for the dimensions of the lens that moved most: what they hold now. The service keeps no list of what arrived or left between two scans: tie it to the commits that touched those files, and say that the link is your reading.
 Write: what went well (each with its evidence: a move, a fix that held, a finding gone); what did not (a fix that did not hold, a finding that arrived, a lens that fell, each tied to the commits behind it); what changed in how it is measured, kept apart; three things to try next sprint, each concrete and checkable by the next scan. No blame on people: say what happened to the code.

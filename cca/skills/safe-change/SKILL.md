@@ -1,30 +1,132 @@
 ---
 name: safe-change
-description: "Before a file is changed: what changes with it, what depends on it and what is already wrong in it. Use whenever someone is about to change, refactor or delete a file or module and asks what to watch out for, what could break, or what touches it. Uses the cca MCP server's tools."
+description: "Prepares a change to one file so it does not break what depends on it: the files that change together with it, the modules that depend on it, the findings already in it, the tests that cover it and the order to work in, written before any code. Use whenever someone is about to change, refactor, move or delete a file or module and asks what to watch out for, what could break, or what touches it. Uses the cca MCP server's tools."
 ---
 
-<!-- Generated from the same source as the cca server's MCP prompt of the same name; do not edit by hand. -->
+# Before changing a file
 
-How to read this service's data (apply to everything below):
-- First check that this service's tools are there and answer. If they are missing or say you must sign in, stop before you write anything: tell the person in one line how to sign in (in Claude Code: type /mcp, choose cca and sign in; a server added during this chat is there from the next chat). Write without the scan only if they ask you to, and then say at the top that the scan was not used.
-- The scan is your map, not the whole answer. It has read every file at once, the git history and the vulnerability databases, the same way every run; you have the repository open. Use the scan to choose where to look, then open those files yourself and add what only reading shows: what the code is for, how it is designed, whether its names and tests say what it does, and whether a finding holds in its context. Keep apart, in what you write, what the scan measured (name its scan) and what you saw yourself (name the files you read).
-- If reading shows a finding is wrong, say so and call dispute_finding with your evidence; never leave it out silently. A problem you find that the scan did not is yours to report as your own, and report_detector_gap sends it back.
-- Start with audit, then get_summary. Name the scan (its commit and date) beside every number about the code now. A trend point is named by its date. Compare numbers from two scans only along the trend.
-- get_summary's "summary" is written from templates whose every sentence is true wherever it can be printed: build on it and rephrase it for your reader, never contradict it. Use its "vocabulary" for what a dimension measures, what a kind of finding is and what to do about it; do not invent your own explanation of a check.
-- A finding is what the scan found in the code, measured the same way on every repository. Never call a correct finding a matter of taste. Do not explain how the score is counted; say what was found and what it means.
-- get_trend: a score on the line is the score as it was measured then. A move across a mark is partly or wholly a change in how it is measured, not in the code. Say what the code did with "codeMove", and each mark's sentence for the rest; never present a mark's move as the code's. A move between two points with no commit between them in git and no mark is not the code's either: say it is unexplained, keep it out of what the code did, and report it with report_platform_issue.
-- get_dimension's "peers" is a comparison, never part of the score. Many checks sit near the top for most repositories: quote the median beside a percentile, never a percentile alone.
-- get_dimension's "reliability": when "measured" is false there are too few decided disputes to say how often this check is wrong; do not present its findings as certain, and do not call them noise either.
-- Security findings first, then what moves the score most for the least work (the order audit's plan and next_task already give).
-- Write for the person who asked. Unless they show they write code, assume they may not: the short version first, plain words, and no check id or lens name without saying in a few words what it means. Short sentences, in the language they write to you in, with dates and times as they would say them. The short version uses the same numbers as the body. Say each thing once. Say what was not measured as plainly as what was.
-- The person's own words win over this recipe's defaults: the reader, the focus (for example what the work gave their customers), the period ("the last sprint": the last two weeks unless a tag or date says otherwise; say which range you used) and the form (a PDF or a document: write it, then make the file with what your tool has, or say plainly that it cannot).
-- Ask only what you cannot find out or sensibly assume. When something is missing (a starting point, a reader, a capacity), take the default the recipe gives, do the work, and say in one line which you used and that they can name another. Never hand the person a list of technical options to choose from.
-- Never show the person tool names, fingerprints or check ids: say in plain words what you did or would do, and why. Keep it to what they can act on: the short version fits one screen; file lists and commit trails go at the end, briefly, or are left out.
-- Every number you give comes from an answer of this service or a count you made. Count with git and the files; never estimate a number you could count. A claim about what a test or a function does comes from reading what it actually calls; if you did not check, say so.
-- End with the short closing paragraph the server's instructions ask for: what the service gave this answer, as its worth to the person (what the answer would otherwise have got wrong or lacked), only from the "contribution" items that changed it, never praise.
+Default reader: the developer about to make the change; file paths, function names and commit ids are expected. Period: the whole
+git history the scan read. Form: a change brief in the chat. If the reader does not write code (a product owner, a manager),
+follow "For a reader who does not write code" below. The file is the one the person names; if none, the one file with
+uncommitted changes (`git status`); if there is not exactly one, ask which file.
 
-The task: prepare a change to the file the person names (ask which, if they did not) so that it does not break what depends on it.
-1. get_architecture with "path" set to it: the files that change together with it in the git history. Then get_architecture with "module" for the module it belongs to: what depends on it and its blast radius.
-2. list_findings, and keep the findings in this file and in the files that change together with it.
-3. Open the file, its co-change partners, its tests and the places that call it, and read them: what the code does, which assumptions the callers make, and what the tests check.
-Write, before any code: what the change touches beyond this file (each file and why); what is already wrong here that the change should fix or must not make worse; which tests cover it and which are missing; the order to make the change in. Then make the change if the person asked for it, and run check_dependencies on the diff before you say it is done.
+## Words
+- **server**: the cca MCP server; its tools are named `cca:<tool>`. A **scan** is one run of it, named by its date and commit.
+- **finding**: one problem the scan found at a place in the code. A **refused fix** is a finding with a `refusedResolution`:
+  reported fixed and found again by a later scan.
+- **change brief**: what this skill writes. **Co-change partners**: files that changed together with this one in the git
+  history. **Dependent modules**: every module that depends on the file's module, directly or not. **Callers**: the places in
+  the code that call it, found by reading.
+
+## Rules for this skill
+- If the server's tools are missing or say you must sign in, stop before you write anything. Tell the person in one line: in
+  Claude Code, type /mcp, choose cca and sign in (a server added during this chat may need a new chat). Write without the scan
+  only if they ask, and then say at the top that the scan was not used.
+- The person's own words win over these defaults: the reader, the focus and the form (a PDF or a document: make it with what
+  your tool has, or say it cannot). When something else is missing, take the default and say in one line which you used. Never
+  hand the person a list of technical options to choose from.
+- Every number comes from a server answer or a count you made with git or the files, and names its scan. A claim about what a
+  test or a caller does comes from reading it; if you did not read it, say so.
+- Keep what the scan measured (name the scan) apart from what you read (name the files).
+- A finding is measured the same way on every repository: never call a correct one a matter of taste.
+  Never explain how the score is counted; say what was found and what it means.
+
+## Workflow
+
+Copy this checklist and tick it off:
+
+```
+Safe-change progress:
+- [ ] 0. Ask the server about the file
+- [ ] 1. Co-change partners and dependent modules
+- [ ] 2. What is already wrong there
+- [ ] 3. Read the file, its partners, tests and callers
+- [ ] 4. Write the change brief, before any code
+- [ ] 5. Make the change, if asked, and check the diff
+- [ ] 6. Check the change brief and add the closing paragraph
+```
+
+### 0. Ask the server about the file
+Call `cca:get_architecture` with `path` set to the file. If the tool is missing or says you must sign in, follow the sign-in rule.
+
+### 1. Co-change partners and dependent modules
+From that answer keep the co-change partners, with how often each changed with the file, and `baseline` (the scan and its
+commit). If no partner is named, quote its `note`. The file's module is the namespace or package declared in its first lines, or
+else its directory. Call `cca:get_architecture` with `module` set to it (if the answer offers closest names, take the one that
+matches the file's directory) and keep the dependent modules.
+If no name matches: say in one line that the scan has no module for this file, and leave dependent modules out.
+
+### 2. What is already wrong there
+`cca:list_findings`, walking every page with `offset` until `truncated` is false. Keep the findings in the file and in its
+co-change partners. For each refused fix, read its `refusedResolution` note before trying the same fix.
+If no finding matches: the brief says the scan found nothing open there.
+
+### 3. Read the file, its partners, tests and callers
+Open the file, its co-change partners, its tests and its callers. A test you did not open is named as not read.
+
+### 4. Write the change brief, before any code
+Use this shape:
+
+```markdown
+# Changing <file>
+
+<Two sentences: what the change touches beyond this file, and the main risk. Scan of <date>, commit <baseline commit>.>
+
+## What it touches
+<Each co-change partner (changed together in <n> of <m> commits), caller and dependent module, and why it matters here.>
+
+## What is already wrong here
+<Findings to fix with this change, those it must not make worse, and each refused fix with what already failed.>
+
+## Tests
+<Which tests cover it and what they check; which are missing.>
+
+## Order
+<The steps, in the order to make them.>
+```
+
+### 5. Make the change, if asked, and check the diff
+Only if the person asked for the change; otherwise end the brief with one line saying no code was changed. After the change,
+pass `git diff -U100000 <baseline commit>` as `diff` to `cca:check_dependencies` (the wide context puts each changed file in
+whole, so its imports are seen). For each answer with `"drift": true`, fix the dependency or say plainly why it is intended, and
+pass the new diff again, until every remaining drift is one you explain. End the brief with one line on how the check ended.
+If the tool fails: say the dependency check was not run.
+
+### 6. Check the change brief and add the closing paragraph
+Check, one by one:
+- every file you name exists;
+- every co-change partner and dependent module came from step 1, with its count;
+- every claim about a test comes from reading it, and an unread test is named as not read;
+- every refused fix from step 2 is under "What is already wrong here" with what already failed;
+- the scan is named (its date, and its commit unless the reader does not write code);
+- the brief says whether code was changed, and how the dependency check ended;
+- for a reader who does not write code, the brief passes the section below.
+
+Fix each item that fails, then check the whole list again. When all pass, add the closing paragraph: a short paragraph on what
+the server gave this answer, only from the `contribution` items that changed it, each as what the brief would otherwise have
+got wrong or lacked. If none changed it, leave the paragraph out.
+
+## For a reader who does not write code
+The risk in plain words first, on one screen, with the same numbers as the body. No tool names, commit hashes or check ids; the
+scan by its date only. Say what was not read or checked as plainly as what was.
+
+## Examples
+
+For the developer making the change, lines under "What it touches", "What is already wrong here" and "Order", and the last line:
+
+> `src/orders/checkout.py` changed together with this file in 18 of its 22 commits (scan of 12 November, commit `a1b2c3d`), and
+> `CheckoutView.submit` calls `apply_discount` expecting a total that is never negative; keep that true.
+>
+> The scan of 12 November finds `apply_discount` too complex (one finding); splitting it is part of this change. A refused fix:
+> reported fixed in `d4e5f6a` and found again, because the split left the rounding branch in `apply_discount`; do not repeat it.
+>
+> 1. Add a test for a discount larger than the total. 2. Split `apply_discount`, rounding included. 3. Change `checkout.py` in
+> the same commit.
+>
+> No code was changed; the dependency check was not run.
+
+For a product owner asking what could break, the opening:
+
+> Changing how prices are worked out also touches checkout, which changed together with it in 18 of 22 changes (scan of
+> 12 November), and the order and invoice parts that rely on it. The main risk is a negative total reaching an invoice, and no
+> test checks for that today.

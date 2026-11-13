@@ -1,30 +1,126 @@
 ---
 name: changelog
-description: "Write a changelog from the git history, with a security section and a line on quality. Use whenever someone asks for a changelog, a list of changes, what changed or what was shipped since a date, tag or release, for the people who maintain the code. For customers or users, use release-notes. Uses the cca MCP server's tools."
+description: "Writes a changelog from the git history for the people who maintain the code, in Keep a Changelog sections with a security section and a line on how quality moved. Use whenever someone asks for a changelog, a list of changes, what changed or what was shipped since a date, tag or release. For customers or users, use release-notes. Uses the cca MCP server's tools."
 ---
 
-<!-- Generated from the same source as the cca server's MCP prompt of the same name; do not edit by hand. -->
+# Changelog
 
-How to read this service's data (apply to everything below):
-- First check that this service's tools are there and answer. If they are missing or say you must sign in, stop before you write anything: tell the person in one line how to sign in (in Claude Code: type /mcp, choose cca and sign in; a server added during this chat is there from the next chat). Write without the scan only if they ask you to, and then say at the top that the scan was not used.
-- The scan is your map, not the whole answer. It has read every file at once, the git history and the vulnerability databases, the same way every run; you have the repository open. Use the scan to choose where to look, then open those files yourself and add what only reading shows: what the code is for, how it is designed, whether its names and tests say what it does, and whether a finding holds in its context. Keep apart, in what you write, what the scan measured (name its scan) and what you saw yourself (name the files you read).
-- If reading shows a finding is wrong, say so and call dispute_finding with your evidence; never leave it out silently. A problem you find that the scan did not is yours to report as your own, and report_detector_gap sends it back.
-- Start with audit, then get_summary. Name the scan (its commit and date) beside every number about the code now. A trend point is named by its date. Compare numbers from two scans only along the trend.
-- get_summary's "summary" is written from templates whose every sentence is true wherever it can be printed: build on it and rephrase it for your reader, never contradict it. Use its "vocabulary" for what a dimension measures, what a kind of finding is and what to do about it; do not invent your own explanation of a check.
-- A finding is what the scan found in the code, measured the same way on every repository. Never call a correct finding a matter of taste. Do not explain how the score is counted; say what was found and what it means.
-- get_trend: a score on the line is the score as it was measured then. A move across a mark is partly or wholly a change in how it is measured, not in the code. Say what the code did with "codeMove", and each mark's sentence for the rest; never present a mark's move as the code's. A move between two points with no commit between them in git and no mark is not the code's either: say it is unexplained, keep it out of what the code did, and report it with report_platform_issue.
-- get_dimension's "peers" is a comparison, never part of the score. Many checks sit near the top for most repositories: quote the median beside a percentile, never a percentile alone.
-- get_dimension's "reliability": when "measured" is false there are too few decided disputes to say how often this check is wrong; do not present its findings as certain, and do not call them noise either.
-- Security findings first, then what moves the score most for the least work (the order audit's plan and next_task already give).
-- Write for the person who asked. Unless they show they write code, assume they may not: the short version first, plain words, and no check id or lens name without saying in a few words what it means. Short sentences, in the language they write to you in, with dates and times as they would say them. The short version uses the same numbers as the body. Say each thing once. Say what was not measured as plainly as what was.
-- The person's own words win over this recipe's defaults: the reader, the focus (for example what the work gave their customers), the period ("the last sprint": the last two weeks unless a tag or date says otherwise; say which range you used) and the form (a PDF or a document: write it, then make the file with what your tool has, or say plainly that it cannot).
-- Ask only what you cannot find out or sensibly assume. When something is missing (a starting point, a reader, a capacity), take the default the recipe gives, do the work, and say in one line which you used and that they can name another. Never hand the person a list of technical options to choose from.
-- Never show the person tool names, fingerprints or check ids: say in plain words what you did or would do, and why. Keep it to what they can act on: the short version fits one screen; file lists and commit trails go at the end, briefly, or are left out.
-- Every number you give comes from an answer of this service or a count you made. Count with git and the files; never estimate a number you could count. A claim about what a test or a function does comes from reading what it actually calls; if you did not check, say so.
-- End with the short closing paragraph the server's instructions ask for: what the service gave this answer, as its worth to the person (what the answer would otherwise have got wrong or lacked), only from the "contribution" items that changed it, never praise.
+**Defaults.** Reader: the people who maintain the code; commits, files and dimension ids stay in; for customers or users,
+use the release-notes skill. Period: since the last tag, or from where the person names; with no tag, over the last two weeks.
+Form: Markdown in the chat. When the person names a path, the changelog covers that **named path** only.
+The person's own words win over these defaults: the reader, the focus, the period ("the last sprint" is the last two weeks
+unless a tag or date says otherwise) and the form (a PDF or a document: make the file with what your tool has, or say it
+cannot). When something is missing, take the default, do the work and say in one line which default you used; never hand the
+person a list of technical options to choose from.
 
-The task: a changelog of what changed since the last tag, or from where the person names (with no tag, over the last two weeks), for the people who maintain the code. If the person wants it for customers or users, or about what the work gave them, use the release-notes skill instead, keeping the changelog's sections if they asked for a changelog.
-1. Read the history yourself: git log from the last tag (git describe --tags --abbrev=0) to HEAD, or, with no tag, over the last two weeks (--since="2 weeks ago"), and the diffs of the larger commits. Sort the changes into added, changed, fixed, removed and security.
-2. get_trend: the points in that range, the marks inside it, and what the code did over it apart from them.
-3. audit and list_findings for the security findings and the dependencies with known vulnerabilities. The scan says what is open now; what was fixed comes from the history (a dependency raised, a fix committed). Say which is which.
-Write it in the Keep a Changelog form (Added, Changed, Fixed, Removed, Security). Group related commits into one entry, one line each, citing the commit of the largest change in the group; written from the diffs, never invented. Say which commit you started from (a date is the person's own date). Add a short Quality line: what the code did to the score over the range, apart from changes in how it is measured, and the security findings still open. State only what the history or the scan shows.
+**Words.** The **server** is the cca MCP server (tools `cca:<tool>`). A **scan** is one run of it, named by commit and date. The
+**headline** is the overall score; **score points** are points of it. A **trend point** is one scan on `cca:get_trend`. A
+**mark** is an entry of the trend's `marks`: a change in the way of measuring, with its own move `headlineDelta` and its
+`sentence`. An **unexplained move**: two neighbouring trend points whose `headline` differs with no commit and no mark between
+them (an empty `git log <commit a>..<commit b>` and no mark). The **code move** is how much the code alone moved the headline.
+**Security findings** are the open findings of `D13` (secrets in the code), `D28` (secrets in the git history), `D29` (security
+bugs), `D30` (vulnerable dependencies), `D31` (container and infrastructure configuration) and `D32` (personal data).
+
+## Rules for this skill
+
+- **History and scan apart.** What changed and what was fixed come from the history (diff or message); what is still open comes
+  from the scan, named by its commit and date.
+- **Numbers.** Every number comes from the server's answer or a count you made with git.
+- **Moves.** Never give a mark's move or an unexplained move as the code move. Report each unexplained move with
+  `cca:report_platform_issue` (`area` "scan-pipeline", `title` "Unexplained trend move", both dates, commits and headlines in
+  `description`); if that call fails, the Quality line says so.
+- **Open findings.** A finding is measured the same way on every repository: never call a correct one a matter of taste.
+  Never explain how the score is counted; say what was found and what it means.
+
+## Workflow
+
+Copy this checklist and tick it off:
+
+```
+Changelog progress:
+- [ ] 0. Read the trend
+- [ ] 1. Read the history
+- [ ] 2. Code move over the range
+- [ ] 3. Security now
+- [ ] 4. Write the changelog
+- [ ] 5. Check the changelog
+```
+
+**0. Read the trend.** `cca:get_trend`; keep the answer for step 2. If the server's tools are missing or say you must sign in,
+stop before you write anything and tell the person in one line: in Claude Code, type /mcp, choose cca and sign in (a server added
+during this chat may need a new chat). Write without the scan only if they ask, and then say at the top that it was not used. If
+the call fails otherwise: skip step 2 and its Quality check, and the Quality line says the trend was not available.
+
+**1. Read the history.** `git log --shortstat <from>..HEAD`, with `-- <path>` added for a named path. With no commits in the
+range: say so in one line and stop. With 30 commits or fewer, read every diff; with more, read the diffs of the commits that
+change more than 50 lines and take the rest from their messages. Sort the changes into added, changed, fixed, removed and
+security, noting for each whether it comes from its diff or its message.
+
+**2. Code move over the range.** With fewer than two trend points in the range, or a named path (the trend measures the whole
+repository): the Quality line says there is no measured move; skip the rest of this step. Otherwise find each unexplained move
+between the trend points in the range and report it (Rules). If the range covers every trend point, the code move is `codeMove`
+minus each unexplained move. Otherwise it is the last trend point's `headline` minus the first one's, minus the `headlineDelta`
+of each mark between them, minus each unexplained move. Keep each such mark's `sentence`.
+
+**3. Security now.** `cca:audit`: keep its `scan` commit and date. Then `cca:list_findings` once per security dimension, each
+with `dimension` set to it and `state` `open`. The count is `totalMatching`; for a named path, walk every page (`offset` until
+`truncated` is false) and count only findings whose file is under the path. Write one Still open line per dimension with a count
+above zero: its count and the first three places the answer lists. If the scan's commit is older than HEAD, the Still open lines
+say the later commits are not yet scanned. If a call fails: write Security from the history alone, skip the Still open lines and
+their check, and the Quality line says the open findings were not available.
+
+**4. Write the changelog** in Keep a Changelog sections, under a range heading instead of a version. Group related commits into
+one entry, one line each, citing the commit of the largest change in the group; leave out a section with nothing in it.
+
+```markdown
+## <from tag or commit> to <HEAD commit>[, <path> only] (<first date> to <last date>)
+
+### Added
+- <Entry> (`<commit>`)
+
+### Changed
+### Fixed
+### Removed
+### Security
+- Fixed: <what> (`<commit>`)
+- Still open: `<dimension>` <count> <what>, at <up to three places> (scan `<commit>`, <date>)
+
+**Quality:** <The code move in score points; each mark's sentence; each unexplained move, as not the code's; the count of
+security findings still open, with the scan.>
+```
+
+**5. Check the changelog.** Check: every entry traces to a commit in the range, from its diff or its message; each cited commit
+exists; Security keeps fixed (history) apart from still open (scan); each Still open count matches step 3; the Quality line never
+gives a mark's move or an unexplained move as the code move; every unexplained move was reported or the failed call is said;
+nothing is stated that the history or the scan does not show. Fix what fails and check again.
+
+**Closing paragraph.** End with a short paragraph on what the server gave this answer: only the `contribution` items that changed
+it, each as what the changelog would otherwise have got wrong or lacked, with its number or file. If none changed it, leave it out.
+
+## Examples
+
+For the maintainers, the default range (since `v2.3.0`):
+
+> ## v2.3.0 to `e71b0c4` (3 Nov to 12 Nov)
+>
+> ### Fixed
+> - Invoices no longer round tax twice on multi-currency orders (`9f3e2a1`, with two follow-ups).
+>
+> ### Security
+> - Fixed: raised `lodash` to 4.17.21, closing a known prototype-pollution flaw (`4c7d0b8`).
+> - Still open: `D29` 1 SQL query built from user input, at `src/reports/export.ts` (scan `e71b0c4`, 12 Nov).
+>
+> **Quality:** the code moved the headline up 1.5 points over the range. A further 2 points come from a change in how
+> duplication is measured on 8 Nov, not from the code. One security finding is still open (scan `e71b0c4`, 12 Nov).
+>
+> Without the scan, this changelog would have left out the open SQL query, which no commit in the range touched.
+
+For a maintainer who names a path and a date ("what changed in billing since 1 November"):
+
+> ## `a03d9f1` to `e71b0c4`, `src/billing/` only (1 Nov to 12 Nov)
+>
+> ### Changed
+> - Credit notes are built by `CreditNoteBuilder` instead of inside `InvoiceEngine` (`b2c4e90`).
+>
+> **Quality:** the trend measures the whole repository, so `src/billing/` has no measured move; no security finding is open
+> under it (scan `e71b0c4`, 12 Nov).

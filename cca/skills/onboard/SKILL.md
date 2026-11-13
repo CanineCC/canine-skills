@@ -1,31 +1,133 @@
 ---
 name: onboard
-description: "Write an onboarding document for someone new to this codebase: what it is, how it is laid out, how work flows through it, where it changes most and where to be careful. Use whenever someone asks to onboard a person, write an onboarding note, a getting-started or welcome guide, an introduction or a 'how this code works' for a new developer or colleague. Uses the cca MCP server's tools."
+description: "Writes an onboarding note for someone new to a codebase: what it is, its open security findings, how it is laid out, how work flows through it, where it changes most, where to be careful, and how to build, run and test it. Use whenever someone asks to onboard a person, write an onboarding note, a getting-started or welcome guide, an introduction or a 'how this code works' for a new developer or colleague. Uses the cca MCP server's tools."
 ---
 
-<!-- Generated from the same source as the cca server's MCP prompt of the same name; do not edit by hand. -->
+# Onboarding note
 
-How to read this service's data (apply to everything below):
-- First check that this service's tools are there and answer. If they are missing or say you must sign in, stop before you write anything: tell the person in one line how to sign in (in Claude Code: type /mcp, choose cca and sign in; a server added during this chat is there from the next chat). Write without the scan only if they ask you to, and then say at the top that the scan was not used.
-- The scan is your map, not the whole answer. It has read every file at once, the git history and the vulnerability databases, the same way every run; you have the repository open. Use the scan to choose where to look, then open those files yourself and add what only reading shows: what the code is for, how it is designed, whether its names and tests say what it does, and whether a finding holds in its context. Keep apart, in what you write, what the scan measured (name its scan) and what you saw yourself (name the files you read).
-- If reading shows a finding is wrong, say so and call dispute_finding with your evidence; never leave it out silently. A problem you find that the scan did not is yours to report as your own, and report_detector_gap sends it back.
-- Start with audit, then get_summary. Name the scan (its commit and date) beside every number about the code now. A trend point is named by its date. Compare numbers from two scans only along the trend.
-- get_summary's "summary" is written from templates whose every sentence is true wherever it can be printed: build on it and rephrase it for your reader, never contradict it. Use its "vocabulary" for what a dimension measures, what a kind of finding is and what to do about it; do not invent your own explanation of a check.
-- A finding is what the scan found in the code, measured the same way on every repository. Never call a correct finding a matter of taste. Do not explain how the score is counted; say what was found and what it means.
-- get_trend: a score on the line is the score as it was measured then. A move across a mark is partly or wholly a change in how it is measured, not in the code. Say what the code did with "codeMove", and each mark's sentence for the rest; never present a mark's move as the code's. A move between two points with no commit between them in git and no mark is not the code's either: say it is unexplained, keep it out of what the code did, and report it with report_platform_issue.
-- get_dimension's "peers" is a comparison, never part of the score. Many checks sit near the top for most repositories: quote the median beside a percentile, never a percentile alone.
-- get_dimension's "reliability": when "measured" is false there are too few decided disputes to say how often this check is wrong; do not present its findings as certain, and do not call them noise either.
-- Security findings first, then what moves the score most for the least work (the order audit's plan and next_task already give).
-- Write for the person who asked. Unless they show they write code, assume they may not: the short version first, plain words, and no check id or lens name without saying in a few words what it means. Short sentences, in the language they write to you in, with dates and times as they would say them. The short version uses the same numbers as the body. Say each thing once. Say what was not measured as plainly as what was.
-- The person's own words win over this recipe's defaults: the reader, the focus (for example what the work gave their customers), the period ("the last sprint": the last two weeks unless a tag or date says otherwise; say which range you used) and the form (a PDF or a document: write it, then make the file with what your tool has, or say plainly that it cannot).
-- Ask only what you cannot find out or sensibly assume. When something is missing (a starting point, a reader, a capacity), take the default the recipe gives, do the work, and say in one line which you used and that they can name another. Never hand the person a list of technical options to choose from.
-- Never show the person tool names, fingerprints or check ids: say in plain words what you did or would do, and why. Keep it to what they can act on: the short version fits one screen; file lists and commit trails go at the end, briefly, or are left out.
-- Every number you give comes from an answer of this service or a count you made. Count with git and the files; never estimate a number you could count. A claim about what a test or a function does comes from reading what it actually calls; if you did not check, say so.
-- End with the short closing paragraph the server's instructions ask for: what the service gave this answer, as its worth to the person (what the answer would otherwise have got wrong or lacked), only from the "contribution" items that changed it, never praise.
+Default reader: a developer joining the team; file paths, function names and commit ids are expected. Period: the whole git
+history the scan read. Form: a Markdown note in the chat. If the reader does not write code (a designer, a manager), follow
+the rule for that reader below.
 
-The task: write an onboarding note for a developer who is new to this codebase.
-1. audit (its inventory: lines per language, tests) and get_summary (its words for what the scan holds).
-2. get_architecture: the modules, their layers, which depend on which, and any cycles; for the busiest module, its blast radius.
-3. list_findings with dimension "D15": the hotspots, files that change often and are complex; for the top three, get_architecture with "path" for the files that change together with them.
-4. Open the entry points, the main files of the busiest module and the top hotspots, and read them: how a request or a job flows through the code, the conventions it follows, and what the names do not tell you. Read the README, the build files and the CI configuration for how to build, run and test it.
-Write: what the codebase is and what it is made of; a map of its parts; how work flows through it; where it changes most and what changes together; where to be careful (hotspots, cycles, security findings); how to build, run and test it.
+## Words
+- **server**: the cca MCP server; its tools are named `cca:<tool>`. A **scan** is one run of it over the repository, named by
+  its commit and date. A **finding** is one problem the scan found at a place in the code.
+- **dimension**: one kind of check, with an id such as `D15`. The **security dimensions** are `D13` secrets in the code, `D28`
+  secrets in the git history, `D29` security bugs found by static analysis, `D30` dependencies with known vulnerabilities,
+  `D31` container and infrastructure configuration, `D32` personal data.
+- **hotspot**: a file with an open `D15` finding (changes often and is complex); its **co-change partners** are the files that
+  changed together with it in the git history. The **busiest module** is the module the most other modules use.
+
+## Rules for this skill
+- **Signing in.** If the server's tools are missing or say you must sign in, stop before you write anything. Tell the person in
+  one line: in Claude Code, type /mcp, choose cca and sign in (a server added during this chat may need a new chat). Write
+  without the scan only if they ask, and then say at the top that the scan was not used.
+- **Defaults.** The person's own words win over these defaults: the reader, the focus and the form (a PDF or a document: make
+  the file with what your tool has, or say it cannot). When something is missing, take the default, write the note, and say
+  in one line which default you used. Never hand the person a list of technical options to choose from.
+- **Scan and reading.** The scan says where to look; your reading says what the code is for and whether a finding holds. Keep
+  the two apart: name the scan for what it measured, the files for what you saw. A finding your reading shows is wrong: say
+  so and call `cca:dispute_finding` with your evidence. A problem the scan missed: give it as your own and report it with
+  `cca:report_detector_gap`. Never call a correct finding a matter of taste. Never explain how the score is counted; say what
+  was found and what it means.
+- **Summary.** `summary` from `cca:get_summary` is true wherever it is printed: build on it, never contradict it.
+- **Numbers.** Every number comes from the server's answer or a count you made with git or the files, and names its scan. A
+  claim about what code does comes from reading it; if you did not read it, say so.
+- **A reader who does not write code.** The short version first, on one screen, with the same numbers as the body. No tool
+  names, commit hashes or dimension ids; a dimension only by what it measures, in a few words.
+
+## Workflow
+
+Copy this checklist and tick it off:
+
+```
+Onboarding progress:
+- [ ] 0. Server answers (Signing in)
+- [ ] 1. Inventory and summary
+- [ ] 2. Open security findings
+- [ ] 3. Map of the parts
+- [ ] 4. Hotspots and their co-change partners
+- [ ] 5. Read the code and the build
+- [ ] 6. Write the note
+- [ ] 7. Check the note and add the closing paragraph
+```
+
+### 0. Server answers (Signing in)
+Call `cca:audit` (no arguments). If the tool is missing or says you must sign in, follow the sign-in rule.
+
+### 1. Inventory and summary
+From the `cca:audit` answer keep `scan` (its commit and `scannedAt`) and `inventory` (the lines the scan read, per language).
+Then `cca:get_summary`: keep `summary` for the opening, and use its `vocabulary` for any dimension the note names, instead of
+your own explanation.
+
+### 2. Open security findings
+`cca:list_findings` once for each security dimension, each with `dimension` set to its id and `state` "open". Keep
+`totalMatching` and, for each row, its file and what it found. A newcomer must know these before touching the code, so they get
+their own section right after the opening. If every count is zero, that section is one line: the scan found none open.
+
+### 3. Map of the parts
+`cca:get_architecture` with no arguments: each module with its layer, level, how many modules use it, and the cycles. Call it
+again with `module` set to the busiest module (on a tie, the first listed): keep its blast radius (every module that depends on
+it, directly or not). If the first answer lists no modules, build "The parts" from the top-level directories and say in one line
+that the scan has no module map for this codebase.
+
+### 4. Hotspots and their co-change partners
+`cca:list_findings` with `dimension` "D15" and `state` "open". The hotspots are the first three distinct files in the order the
+rows come back (most severe first). Fewer than three: use those and say so in one line. None: write that the scan found no file
+that is both changed often and complex, and skip the rest of this step. For each hotspot, `cca:get_architecture` with `path`
+set to it: keep its co-change partners and how often each changed with it; if none is named, quote the answer's `note`.
+
+### 5. Read the code and the build
+Open the entry points, the main files of the busiest module and the hotspots: how one request or job flows, the conventions the
+code follows, what the names do not tell you. Count the test files (`git ls-files` matching the test folders or names the build
+uses). Read the README, the build files and the CI configuration for the exact commands to build, run and test.
+
+### 6. Write the note
+Use this shape; adapt the headings to the codebase:
+
+```markdown
+# Welcome to <project>
+
+<Three sentences: what it is, what it is built with (lines per language from the scan of <date>), the one thing to know first.>
+
+## Open security findings
+<Each open finding: file and what it means, with the scan's date. Or: none open in the scan of <date>.>
+
+## The parts
+<Each module in a line: what it does, what it depends on.>
+
+## How work flows
+<One request or job from entry point to result, naming the files.>
+
+## Where it changes most
+<Each hotspot and its co-change partners, with how often they changed together.>
+
+## Where to be careful
+<The busiest module and its blast radius, cycles, conventions that bite.>
+
+## Build, run and test
+<The exact commands from the README, build files and CI; how many test files there are (my count).>
+
+## First week
+<Three to five concrete first steps.>
+```
+
+### 7. Check the note and add the closing paragraph
+Check the note against the rules above, and also: every file you name exists; every build command matches the build files or
+CI; the security counts match `totalMatching`; for a reader who does not write code, the note passes that rule. Fix what fails
+and check again until nothing fails.
+
+Then add the closing paragraph: a short paragraph on what the server gave this note, only from the `contribution` items that
+changed it, each said as what the note would otherwise have got wrong or lacked. If none changed it, leave it out.
+
+## Examples
+
+A line under "Where it changes most", for a developer:
+
+> `src/billing/invoice.ts` changed in 41 commits (scan of 12 November, commit `a1b2c3d`) and is the most complex file in the
+> billing module; `src/billing/tax.ts` changed together with it in 30 of those commits, so change them together.
+
+The same line for a designer joining the team:
+
+> Billing changes more often than any other part of the product: the invoice code changed 41 times in its history (scan of
+> 12 November), and the tax rules changed with it in 30 of those 41. Expect work on invoices to touch tax as well.

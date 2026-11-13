@@ -1,30 +1,129 @@
 ---
 name: release-notes
-description: "Write release notes for the people who use the product: what is new, what changed, what was fixed and what they must do. Use whenever someone asks for release notes, an update for customers or users, what a release or sprint gave customers, or a customer-facing changelog, in any format (a PDF, a document, an email). Uses the cca MCP server's tools."
+description: "Writes release notes for the people who use the product: what is new, what changed, what was fixed, what security issues were closed or remain, and what they must do before upgrading. Use whenever someone asks for release notes, an update for customers or users, what a release or sprint gave customers, or a customer-facing changelog, in any form (a PDF, a document, an email). Uses the cca MCP server's tools."
 ---
 
-<!-- Generated from the same source as the cca server's MCP prompt of the same name; do not edit by hand. -->
+# Release notes
 
-How to read this service's data (apply to everything below):
-- First check that this service's tools are there and answer. If they are missing or say you must sign in, stop before you write anything: tell the person in one line how to sign in (in Claude Code: type /mcp, choose cca and sign in; a server added during this chat is there from the next chat). Write without the scan only if they ask you to, and then say at the top that the scan was not used.
-- The scan is your map, not the whole answer. It has read every file at once, the git history and the vulnerability databases, the same way every run; you have the repository open. Use the scan to choose where to look, then open those files yourself and add what only reading shows: what the code is for, how it is designed, whether its names and tests say what it does, and whether a finding holds in its context. Keep apart, in what you write, what the scan measured (name its scan) and what you saw yourself (name the files you read).
-- If reading shows a finding is wrong, say so and call dispute_finding with your evidence; never leave it out silently. A problem you find that the scan did not is yours to report as your own, and report_detector_gap sends it back.
-- Start with audit, then get_summary. Name the scan (its commit and date) beside every number about the code now. A trend point is named by its date. Compare numbers from two scans only along the trend.
-- get_summary's "summary" is written from templates whose every sentence is true wherever it can be printed: build on it and rephrase it for your reader, never contradict it. Use its "vocabulary" for what a dimension measures, what a kind of finding is and what to do about it; do not invent your own explanation of a check.
-- A finding is what the scan found in the code, measured the same way on every repository. Never call a correct finding a matter of taste. Do not explain how the score is counted; say what was found and what it means.
-- get_trend: a score on the line is the score as it was measured then. A move across a mark is partly or wholly a change in how it is measured, not in the code. Say what the code did with "codeMove", and each mark's sentence for the rest; never present a mark's move as the code's. A move between two points with no commit between them in git and no mark is not the code's either: say it is unexplained, keep it out of what the code did, and report it with report_platform_issue.
-- get_dimension's "peers" is a comparison, never part of the score. Many checks sit near the top for most repositories: quote the median beside a percentile, never a percentile alone.
-- get_dimension's "reliability": when "measured" is false there are too few decided disputes to say how often this check is wrong; do not present its findings as certain, and do not call them noise either.
-- Security findings first, then what moves the score most for the least work (the order audit's plan and next_task already give).
-- Write for the person who asked. Unless they show they write code, assume they may not: the short version first, plain words, and no check id or lens name without saying in a few words what it means. Short sentences, in the language they write to you in, with dates and times as they would say them. The short version uses the same numbers as the body. Say each thing once. Say what was not measured as plainly as what was.
-- The person's own words win over this recipe's defaults: the reader, the focus (for example what the work gave their customers), the period ("the last sprint": the last two weeks unless a tag or date says otherwise; say which range you used) and the form (a PDF or a document: write it, then make the file with what your tool has, or say plainly that it cannot).
-- Ask only what you cannot find out or sensibly assume. When something is missing (a starting point, a reader, a capacity), take the default the recipe gives, do the work, and say in one line which you used and that they can name another. Never hand the person a list of technical options to choose from.
-- Never show the person tool names, fingerprints or check ids: say in plain words what you did or would do, and why. Keep it to what they can act on: the short version fits one screen; file lists and commit trails go at the end, briefly, or are left out.
-- Every number you give comes from an answer of this service or a count you made. Count with git and the files; never estimate a number you could count. A claim about what a test or a function does comes from reading what it actually calls; if you did not check, say so.
-- End with the short closing paragraph the server's instructions ask for: what the service gave this answer, as its worth to the person (what the answer would otherwise have got wrong or lacked), only from the "contribution" items that changed it, never praise.
+## Words
+- **users**: the people who use the product and do not write code. **operators**: the people who host or run it.
+- **server**: the cca MCP server; its tools are named `cca:<tool>`. A **scan** is one run of it over the repository, named by
+  its commit and date. A **finding** is one problem the scan found at a place in the code.
+- **security dimensions**: the kinds of check whose findings are security findings: `D13` secrets in the code, `D28` secrets in
+  the git history, `D29` security bugs found by static analysis, `D30` dependencies with known vulnerabilities, `D31` container
+  and infrastructure configuration, `D32` personal data.
+- **trend point**: one scan on the trend, with its `headline` (the quality score; the notes call it "the quality score"). A **mark** is a point on the trend where the
+  way of measuring changed, with its own move `headlineDelta`. An **unexplained move**: two neighbouring trend points whose
+  headline differs with no commit and no mark between them (an empty `git log <commit a>..<commit b>`); its size is the later
+  headline minus the earlier.
 
-The task: release notes for the version or the period the person names, for the people who use the product, not the people who build it. If it is unclear who they are, write for the people who use the app and say so; when a change matters to the people who run or host it, give them their own short section.
-1. Read the history yourself: git log from the last tag (git describe --tags --abbrev=0) to HEAD, or, with no tag, over the last two weeks (--since="2 weeks ago"), the merged pull requests' titles and descriptions, and the diffs where a title does not say what a user will notice.
-2. audit and list_findings for the security findings and the dependencies with known vulnerabilities: which were fixed in this release and which are still open.
-3. get_trend: what the code did over the range, apart from changes in how it is measured.
-Write: a headline sentence; what is new and what changed, in the users' words (what they can do now, what works better); what was fixed; security, plainly (what this release fixes, from the history; anything still open that users should know: what is affected and what to do, never how it could be used against them); anything users must do to upgrade. Leave out internal changes users will not notice. Never claim a fix the history does not show.
+## Rules for this skill
+- **Signing in.** If the server's tools are missing or say you must sign in, stop before you write anything. Tell the person in
+  one line: in Claude Code, type /mcp, choose cca and sign in (a server added during this chat may need a new chat). Write
+  without the scan only if they ask, and then say at the top that the scan was not used.
+- **Defaults.** Reader: users; operators get the "For operators" section. Range: from the last tag to HEAD, or,
+  with no tag, over the last two weeks ("the last sprint" is the last two weeks unless a tag or date says otherwise). Form: a
+  reply in the chat. The person's own words win over these defaults: the reader, the focus, the range and the form (a PDF or a
+  document: make the file with what your tool has, or say it cannot). When something is missing, take the default, write the
+  notes, and say in one line which default you used. Never hand the person a list of technical options to choose from.
+- **Scan and reading.** Keep apart what the scan measured (name the scan by its date) and what you read in the commits and files. A security
+  finding your reading shows is wrong: call `cca:dispute_finding` with your evidence and leave it out of the notes. Never explain how the score is counted; say what was found and what it means.
+- **Numbers.** Every number comes from the server's answer or a count you made with git; a number names its scan or date.
+- **Users.** The short version first. No tool names, file paths, commit hashes, dimension ids or internal names.
+
+## Workflow
+
+Copy this checklist and tick it off:
+
+```
+Release notes progress:
+- [ ] 0. Server answers (Signing in)
+- [ ] 1. Read the git history of the range
+- [ ] 2. Security: fixed and still open
+- [ ] 3. What the code did
+- [ ] 4. Write the notes
+- [ ] 5. Check the notes and add the closing paragraph
+```
+
+**0. Server answers (Signing in).** Call `cca:audit` (no arguments) and keep its `scan`: the commit and date the server last
+scanned. If the tool is missing, fails or asks you to sign in: follow the sign-in rule.
+
+**1. Read the git history of the range.** Read each commit message in `git log <last tag>..HEAD` (with no tag,
+`git log --since="2 weeks ago"`; if git cannot read the history, tell the person in one line that the notes need the
+repository's clone, and stop). When a merge message does not say what changed, open `gh pr view <n>`. When that does not say what users will notice
+either, read the diff. Sort each change: new, improved, fixed, security, before you upgrade, for
+operators, or internal. If the range holds no commit: the notes are one line saying nothing changed since the tag or date; go
+to step 5.
+
+**2. Security: fixed and still open.** Call `cca:list_findings` once for each security dimension, with that dimension and
+`state` "open"; read `totalMatching` and walk the pages with `offset`. Sort each finding, testing in this order:
+1. reading shows the finding is wrong: follow Scan and reading;
+2. no commit after the step 0 scan touched its file (`git log <scan commit>..HEAD -- <file>` is empty, or the command fails
+   because the scan commit is not in this clone): **open**;
+3. a later change removes the problem: **fixed** (the next scan will confirm it); otherwise **open**.
+
+A security change from step 1 with no finding (a dependency raised) is also fixed.
+If `cca:list_findings` fails: write Security from step 1 alone, and tell the person outside the notes that open security findings
+were not checked.
+
+**3. What the code did.** Call `cca:get_trend` (no arguments) and take the trend points dated inside the range. What the
+code did = the headline at the last of them minus the headline at the first, minus each mark's `headlineDelta` between them,
+minus each unexplained move between them (report each with `cca:report_platform_issue`, `area` "scan-pipeline", with both
+dates and headlines). Write it as one plain sentence under "For operators", with both dates and each mark's move apart. With
+fewer than two trend points, a mark without `headlineDelta`, or a failed call: leave the sentence out.
+
+**4. Write the notes** in this shape, in this order. The title takes the product's name from the README or package file
+and the version from the tag (with no tag, the date range). Leave out a section with nothing in it, and every internal change:
+
+```markdown
+# <product> <version, or the date range>
+
+<One sentence: the most important thing this release gives users.>
+
+## New
+<What users can do now, in their words.>
+
+## Improved
+<What works better.>
+
+## Fixed
+<What no longer goes wrong, with the date of the commit that fixed it.>
+
+## Security
+<What this release fixes. Each open item users should know: what is affected and what to do. Never how it could be used
+against them.>
+
+## Before you upgrade
+<Anything users must do.>
+
+## For operators
+<Changes to hosting or running it, and what the code did from step 3 with its two dates.>
+```
+
+**5. Check the notes and add the closing paragraph.** Check, one by one:
+- every fix you claim is a change you read in step 1;
+- every security item called open or fixed was sorted by the step 2 rules against the step 0 scan;
+- every open security item says what is affected and what to do, and none says how it could be used;
+- every item is in the users' words, with no internal names, file paths, commit hashes or tool names;
+- what the code did appears only under "For operators", with its dates, and no mark's move or unexplained move is told as
+  the code's;
+- the range you used is stated, and the form asked for was made (or you said it cannot be).
+
+Fix each item that fails, then check the whole list again. When all pass, add the closing paragraph: a short paragraph on what
+the server gave these notes, only from the `contribution` items that changed them, each said as what the notes would otherwise
+have got wrong or lacked. If none changed them, leave it out.
+
+## Examples
+
+For users. Input, a pull request title: `fix(export): stream pdf pages past 100 rows`. Output, under "Fixed":
+
+> Invoices with more than 100 lines now download as one PDF instead of stopping halfway (fixed 6 November).
+
+Input, an open security finding on the sign-in page whose file no later commit touched. Output, under "Security":
+
+> The sign-in page can still be loaded inside another website. Until the next release, sign in only at our own address.
+
+For operators, under "For operators":
+
+> The app now needs version 16 of its database; upgrade it before you install this release. Between the scans of 30 October
+> and 13 November the code itself raised its quality score by 2 points; a change in how it is measured added 1 more.

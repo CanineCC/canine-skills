@@ -1,6 +1,6 @@
 {
   "name": "canine",
-  "description": "Canine Development's skills for your AI tool, and the one MCP server they read from",
+  "description": "Canine Development's skills for your AI tool",
   "owner": {
     "name": "Canine"
   },
@@ -8,7 +8,7 @@
     {
       "name": "cca",
       "source": "./cca",
-      "description": "Skills that write about your codebase (assessment, onboarding, changelog, release notes, sprint planning and more), the cca MCP server, /cca-fix and /cca-scan"
+      "description": "Skills that write about your codebase (assessment, onboarding, changelog, release notes, sprint planning and more), /cca-fix and /cca-scan. They read from the cca MCP server, which you add yourself"
     },
     {
       "name": "assay",

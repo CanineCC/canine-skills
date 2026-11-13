@@ -37,7 +37,7 @@ One MCP server for every product: `/mcp/cca`.
   `/mcp` in Claude Code, pick `cca` and sign in. Your browser opens the sign-in page; pick the project and click Allow. That makes
   a key for that one repository; switch it off again on the product's "Set up your AI tool" page. A repository key from a
   product's AI tool page works too (`Authorization: Bearer`), as does an organisation's API key (`cca_…`), which gets the `/v1`
-  API as tools instead of the fix loop. Allow `mcp__plugin_cca_cca__*`.
+  API as tools instead of the fix loop. Allow `mcp__cca__*`.
 - **`/cca-fix`** works the repository's findings: `next_task` (security first), fix every instance, `resolve_finding` each,
   dispute or accept what should not be fixed, until `next_task` returns nothing. The next scan checks each fix.
 - **`/cca-scan`** starts a scan of the repository your working tree belongs to (matched by its `origin` remote) through the API,

@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "cca": {
-      "type": "http",
-      "url": "${CCA_MCP_URL:-https://app.assure.canine.dev/mcp/cca}"
-    }
-  }
-}

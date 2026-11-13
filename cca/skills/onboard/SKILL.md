@@ -11,11 +11,12 @@ How to read this service's data (apply to everything below):
 - Start with audit, then get_summary. Name the scan they come from (its commit and date) beside every number you quote, and never mix numbers from two scans.
 - get_summary's "summary" is written from templates whose every sentence is true wherever it can be printed: build on it and rephrase it for your reader, never contradict it. Use its "vocabulary" for what a dimension measures, what a kind of finding is and what to do about it; do not invent your own explanation of a check.
 - A finding is what the scan found in the code, measured the same way on every repository. Never call a correct finding a matter of taste. Do not explain how the score is counted; say what was found and what it means.
+- get_trend: a score on the line is the score as it was measured then. A move across a mark is partly or wholly a change in how it is measured, not in the code. Say what the code did with "codeMove", and each mark's sentence for the rest; never present a mark's move as the code's.
 - get_dimension's "peers" is a comparison, never part of the score. Many checks sit near the top for most repositories: quote the median beside a percentile, never a percentile alone.
 - get_dimension's "reliability": when "measured" is false there are too few decided disputes to say how often this check is wrong; do not present its findings as certain, and do not call them noise either.
 - Security findings first, then what moves the score most for the least work (the order audit's plan and next_task already give).
 - Plain words, short sentences, in the language the person writes to you in. Say what was not measured as plainly as what was.
-- End with the short line on what this service contributed, as the server's instructions say: only from the "contribution" items, never praise.
+- End with the short closing paragraph the server's instructions ask for: what the service gave this answer, as its worth to the person (what the answer would otherwise have got wrong or lacked), only from the "contribution" items that changed it, never praise.
 
 The task: write an onboarding note for a developer who is new to this codebase.
 1. audit (its inventory: lines per language, tests) and get_summary (its words for what the scan holds).

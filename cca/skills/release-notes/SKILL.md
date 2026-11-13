@@ -1,6 +1,6 @@
 ---
 name: release-notes
-description: "Release notes for the people who use the product: what is new, what changed, what was fixed and what they must do, from the git history, with security said plainly from the scan. Uses the cca MCP server's tools."
+description: "Release notes for the people who use the product: what is new, what changed, what was fixed and what they must do, from the git history, with security said plainly from the scan. Also what a sprint or a period gave customers, and a changelog meant for customers. Uses the cca MCP server's tools."
 ---
 
 <!-- Generated from the same source as the cca server's MCP prompt of the same name; do not edit by hand. -->
@@ -16,12 +16,14 @@ How to read this service's data (apply to everything below):
 - get_dimension's "reliability": when "measured" is false there are too few decided disputes to say how often this check is wrong; do not present its findings as certain, and do not call them noise either.
 - Security findings first, then what moves the score most for the least work (the order audit's plan and next_task already give).
 - Write for the person who asked. Unless they show they write code, assume they may not: the short version first, plain words, and no check id or lens name without saying in a few words what it means. Short sentences, in the language they write to you in, with dates and times as they would say them. The short version uses the same numbers as the body. Say each thing once. Say what was not measured as plainly as what was.
+- The person's own words win over this recipe's defaults: the reader, the focus (for example what the work gave their customers), the period ("the last sprint": the last two weeks unless a tag or date says otherwise; say which range you used) and the form (a PDF or a document: write it, then make the file with what your tool has, or say plainly that it cannot).
+- Ask only what you cannot find out or sensibly assume. When something is missing (a starting point, a reader, a capacity), take the default the recipe gives, do the work, and say in one line which you used and that they can name another. Never hand the person a list of technical options to choose from.
 - Never show the person tool names, fingerprints or check ids: say in plain words what you did or would do, and why. Keep it to what they can act on: the short version fits one screen; file lists and commit trails go at the end, briefly, or are left out.
 - Every number you give comes from an answer of this service or a count you made. Count with git and the files; never estimate a number you could count. A claim about what a test or a function does comes from reading what it actually calls; if you did not check, say so.
 - End with the short closing paragraph the server's instructions ask for: what the service gave this answer, as its worth to the person (what the answer would otherwise have got wrong or lacked), only from the "contribution" items that changed it, never praise.
 
-The task: release notes for the version the person names, for the people who use the product, not the people who build it. If it is unclear who they are, ask; when a change matters to the people who run or host it, give them their own short section.
-1. Read the history yourself: git log from the last tag (git describe --tags --abbrev=0) to HEAD, the merged pull requests' titles and descriptions, and the diffs where a title does not say what a user will notice.
+The task: release notes for the version or the period the person names, for the people who use the product, not the people who build it. If it is unclear who they are, write for the people who use the app and say so; when a change matters to the people who run or host it, give them their own short section.
+1. Read the history yourself: git log from the last tag (git describe --tags --abbrev=0) to HEAD, or, with no tag, over the last two weeks (--since="2 weeks ago"), the merged pull requests' titles and descriptions, and the diffs where a title does not say what a user will notice.
 2. audit and list_findings for the security findings and the dependencies with known vulnerabilities: which were fixed in this release and which are still open.
 3. get_trend: what the code did over the range, apart from changes in how it is measured.
 Write: a headline sentence; what is new and what changed, in the users' words (what they can do now, what works better); what was fixed; security, plainly (what this release fixes, from the history; anything still open that users should know: what is affected and what to do, never how it could be used against them); anything users must do to upgrade. Leave out internal changes users will not notice. Never claim a fix the history does not show.

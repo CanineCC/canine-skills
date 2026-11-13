@@ -1,6 +1,6 @@
 ---
 name: changelog
-description: "A changelog from the git history, written from the diffs, with a security section and a short quality line from the scan. Uses the cca MCP server's tools."
+description: "A changelog from the git history, written from the diffs, with a security section and a short quality line from the scan, for the people who maintain the code. For customers or users, or what a release or a sprint gave them, release-notes is written for that reader. Uses the cca MCP server's tools."
 ---
 
 <!-- Generated from the same source as the cca server's MCP prompt of the same name; do not edit by hand. -->
@@ -16,12 +16,14 @@ How to read this service's data (apply to everything below):
 - get_dimension's "reliability": when "measured" is false there are too few decided disputes to say how often this check is wrong; do not present its findings as certain, and do not call them noise either.
 - Security findings first, then what moves the score most for the least work (the order audit's plan and next_task already give).
 - Write for the person who asked. Unless they show they write code, assume they may not: the short version first, plain words, and no check id or lens name without saying in a few words what it means. Short sentences, in the language they write to you in, with dates and times as they would say them. The short version uses the same numbers as the body. Say each thing once. Say what was not measured as plainly as what was.
+- The person's own words win over this recipe's defaults: the reader, the focus (for example what the work gave their customers), the period ("the last sprint": the last two weeks unless a tag or date says otherwise; say which range you used) and the form (a PDF or a document: write it, then make the file with what your tool has, or say plainly that it cannot).
+- Ask only what you cannot find out or sensibly assume. When something is missing (a starting point, a reader, a capacity), take the default the recipe gives, do the work, and say in one line which you used and that they can name another. Never hand the person a list of technical options to choose from.
 - Never show the person tool names, fingerprints or check ids: say in plain words what you did or would do, and why. Keep it to what they can act on: the short version fits one screen; file lists and commit trails go at the end, briefly, or are left out.
 - Every number you give comes from an answer of this service or a count you made. Count with git and the files; never estimate a number you could count. A claim about what a test or a function does comes from reading what it actually calls; if you did not check, say so.
 - End with the short closing paragraph the server's instructions ask for: what the service gave this answer, as its worth to the person (what the answer would otherwise have got wrong or lacked), only from the "contribution" items that changed it, never praise.
 
-The task: a changelog of what changed since the last tag, or from where the person names, for the people who maintain the code.
-1. Read the history yourself: git log from the last tag (git describe --tags --abbrev=0) to HEAD, and the diffs of the larger commits. Sort the changes into added, changed, fixed, removed and security.
+The task: a changelog of what changed since the last tag, or from where the person names (with no tag, over the last two weeks), for the people who maintain the code. If the person wants it for customers or users, or about what the work gave them, follow release-notes (get_recipe) instead, keeping the changelog's sections if they asked for a changelog.
+1. Read the history yourself: git log from the last tag (git describe --tags --abbrev=0) to HEAD, or, with no tag, over the last two weeks (--since="2 weeks ago"), and the diffs of the larger commits. Sort the changes into added, changed, fixed, removed and security.
 2. get_trend: the points in that range, the marks inside it, and what the code did over it apart from them.
 3. audit and list_findings for the security findings and the dependencies with known vulnerabilities. The scan says what is open now; what was fixed comes from the history (a dependency raised, a fix committed). Say which is which.
 Write it in the Keep a Changelog form (Added, Changed, Fixed, Removed, Security). Group related commits into one entry, one line each, citing the commit of the largest change in the group; written from the diffs, never invented. Say which commit you started from (a date is the person's own date). Add a short Quality line: what the code did to the score over the range, apart from changes in how it is measured, and the security findings still open. State only what the history or the scan shows.

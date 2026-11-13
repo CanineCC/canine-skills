@@ -1,0 +1,26 @@
+---
+name: sprint-planning
+description: "Propose what the team takes into the next sprint from what the scan found: security first, the most improvement for the effort, items that touch the same files kept together, fitted to the team's capacity. Uses the cca MCP server's tools."
+---
+
+<!-- Generated from the same source as the cca server's MCP prompt of the same name; do not edit by hand. -->
+
+How to read this service's data (apply to everything below):
+- The scan is your map, not the whole answer. It has read every file at once, the git history and the vulnerability databases, the same way every run; you have the repository open. Use the scan to choose where to look, then open those files yourself and add what only reading shows: what the code is for, how it is designed, whether its names and tests say what it does, and whether a finding holds in its context. Keep apart, in what you write, what the scan measured (name its scan) and what you saw yourself (name the files you read).
+- If reading shows a finding is wrong, say so and call dispute_finding with your evidence; never leave it out silently. A problem you find that the scan did not is yours to report as your own, and report_detector_gap sends it back.
+- Start with audit, then get_summary. Name the scan they come from (its commit and date) beside every number you quote, and never mix numbers from two scans.
+- get_summary's "summary" is written from templates whose every sentence is true wherever it can be printed: build on it and rephrase it for your reader, never contradict it. Use its "vocabulary" for what a dimension measures, what a kind of finding is and what to do about it; do not invent your own explanation of a check.
+- A finding is what the scan found in the code, measured the same way on every repository. Never call a correct finding a matter of taste. Do not explain how the score is counted; say what was found and what it means.
+- get_trend: a score on the line is the score as it was measured then. A move across a mark is partly or wholly a change in how it is measured, not in the code. Say what the code did with "codeMove", and each mark's sentence for the rest; never present a mark's move as the code's.
+- get_dimension's "peers" is a comparison, never part of the score. Many checks sit near the top for most repositories: quote the median beside a percentile, never a percentile alone.
+- get_dimension's "reliability": when "measured" is false there are too few decided disputes to say how often this check is wrong; do not present its findings as certain, and do not call them noise either.
+- Security findings first, then what moves the score most for the least work (the order audit's plan and next_task already give).
+- Plain words, short sentences, in the language the person writes to you in. Say what was not measured as plainly as what was.
+- End with the short closing paragraph the server's instructions ask for: what the service gave this answer, as its worth to the person (what the answer would otherwise have got wrong or lacked), only from the "contribution" items that changed it, never praise.
+
+The task: propose what the team should take into the next sprint from what the scan found, within the capacity the person gives (ask for it if they did not).
+1. audit: the plan (each row's point gain and effort), the queue, and resolutionsRefused (fixes reported done that did not hold come first).
+2. next_task, again and again, without claiming anything: the causes in the service's one order (security first, then the most improvement for the effort). Stop when what you have read would fill the capacity twice over.
+3. list_findings with dimension "D15" (hotspots) and get_architecture with "path" for the files the top causes touch: which change together, so items on the same files go to one person or one after the other.
+4. Open the files behind each candidate and read them: does the plan's effort fit this code (the tests around it, how tangled it is)? Say so where it does not, and why.
+Write a sprint proposal: the goal in one sentence; the items, each with what to do, where, why it matters to the people who use the product, the effort (the plan's, and yours where you disagree), and what it moves; the order and which items belong together; what stays out and why; the risk of leaving a security item out. Fit the capacity; do not overfill. End with the questions the team must settle in the planning meeting.

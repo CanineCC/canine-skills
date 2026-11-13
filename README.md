@@ -32,8 +32,10 @@ One MCP server for every product: `/mcp/cca`.
 - **Skills** (`skills/`): `assess` (a written assessment for a developer, management or a buyer), `onboard` (a note for someone new to
   the codebase), `progress` (how quality has moved, and whether reported fixes held), `compare` (review a few files yourself, then
   compare with what the scan found), `before-ship` (ready or not yet, and what must be fixed first), `safe-change` (before you change
-  a file: what changes with it, what depends on it, what is already wrong in it) and `review-branch` (a branch's scan against the
-  default branch, and your AI's own reading of the diff). In each, the scan is your AI's map: it has read the whole repository, its git history and the
+  a file: what changes with it, what depends on it, what is already wrong in it), `review-branch` (a branch's scan against the
+  default branch, and your AI's own reading of the diff), `sprint-planning` (what to take into the next sprint, fitted to the
+  capacity), `retrospective` (how the code did over a sprint, and what to try next), `changelog` and `release-notes` (from the git
+  history, with security from the scan). In each, the scan is your AI's map: it has read the whole repository, its git history and the
   vulnerability databases, so your AI knows where to look, then opens those files itself, checks each finding in context and adds
   what only reading shows, keeping what the scan measured apart from what it saw. Your AI uses them when you ask for that kind of
   work; each is the same text the server offers as an MCP prompt of the same name, generated from one source.

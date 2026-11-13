@@ -1,6 +1,8 @@
 {
   "name": "assay",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Assay: read your codebases' decision reports and what each finding means for the deal. Read-only",
-  "author": { "name": "Canine" }
+  "author": {
+    "name": "Canine"
+  }
 }

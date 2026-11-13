@@ -1,6 +1,6 @@
 ---
 name: due-diligence
-description: "A due diligence memo on one codebase: what you would inherit, the risks that carry a price, what to ask the seller, and what the seller should fix or disclose before closing, from its decision report and, where you have the code, your own reading of it. Uses the assay MCP server's tools."
+description: "A due diligence memo on one codebase: what you would inherit, the risks that carry a price, what to ask the seller, and what the seller should fix or disclose before closing, from its decision report and, where you have the code, your own reading of it. Use whenever someone asks for due diligence on a codebase, what buying, investing in or taking over a piece of software would mean, or the technical risk in a deal. Uses the assay MCP server's tools."
 ---
 
 <!-- Generated from the same source as the assay server's MCP prompt of the same name; do not edit by hand. -->

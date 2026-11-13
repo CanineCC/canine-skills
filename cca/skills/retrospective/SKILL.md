@@ -1,6 +1,6 @@
 ---
 name: retrospective
-description: "A retrospective of the code's quality over a sprint: what went well and what did not, with evidence from the scan and the git history, what changed in how it is measured kept apart, and what to try next. Uses the cca MCP server's tools."
+description: "A retrospective of the code's quality over a sprint or period: what went well, what did not, and what to try next. Use whenever someone asks for a retro, a retrospective, a sprint review or 'how did we do' on the code. Uses the cca MCP server's tools."
 ---
 
 <!-- Generated from the same source as the cca server's MCP prompt of the same name; do not edit by hand. -->

@@ -1,6 +1,6 @@
 ---
 name: before-ship
-description: "Before you ship it or show it to anyone: what must be fixed first (security, dependencies with known holes, secrets), what can wait, and a plain ready or not yet, checked in the code itself. Uses the cca MCP server's tools."
+description: "Decide whether the code is ready to ship, release or deploy, and what must be fixed first. Use whenever someone asks if it is safe to deploy, ready for production, ready to release or launch, or what blocks going live. Uses the cca MCP server's tools."
 ---
 
 <!-- Generated from the same source as the cca server's MCP prompt of the same name; do not edit by hand. -->

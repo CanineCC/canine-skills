@@ -1,6 +1,6 @@
 ---
 name: release-notes
-description: "Release notes for the people who use the product: what is new, what changed, what was fixed and what they must do, from the git history, with security said plainly from the scan. Also what a sprint or a period gave customers, and a changelog meant for customers. Uses the cca MCP server's tools."
+description: "Write release notes for the people who use the product: what is new, what changed, what was fixed and what they must do. Use whenever someone asks for release notes, an update for customers or users, what a release or sprint gave customers, or a customer-facing changelog, in any format (a PDF, a document, an email). Uses the cca MCP server's tools."
 ---
 
 <!-- Generated from the same source as the cca server's MCP prompt of the same name; do not edit by hand. -->

@@ -1,6 +1,6 @@
 ---
 name: compare
-description: "Review a few files yourself first, then compare with what this service's scan found in the same files: found by both, only by the scan, only by you. Uses the cca MCP server's tools."
+description: "Review a few files yourself, then compare your review with what the scan found. Use when someone asks you to review specific files and check them against the scan, or asks what an AI review misses compared with a full scan. Uses the cca MCP server's tools."
 ---
 
 <!-- Generated from the same source as the cca server's MCP prompt of the same name; do not edit by hand. -->

@@ -1,6 +1,6 @@
 ---
 name: safe-change
-description: "Before you change a file: what changes together with it, what depends on it, what is already wrong in it, and a plan for the change that keeps the rest working. Uses the cca MCP server's tools."
+description: "Before a file is changed: what changes with it, what depends on it and what is already wrong in it. Use whenever someone is about to change, refactor or delete a file or module and asks what to watch out for, what could break, or what touches it. Uses the cca MCP server's tools."
 ---
 
 <!-- Generated from the same source as the cca server's MCP prompt of the same name; do not edit by hand. -->

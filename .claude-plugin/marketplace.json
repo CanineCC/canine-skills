@@ -1,6 +1,6 @@
 {
   "name": "canine",
-  "description": "Canine products for your coding agent: one MCP server for every product, and the commands that fix and scan",
+  "description": "Canine Development's skills for your AI tool, and the one MCP server they read from",
   "owner": {
     "name": "Canine"
   },
@@ -8,7 +8,7 @@
     {
       "name": "cca",
       "source": "./cca",
-      "description": "The cca MCP server: /cca-fix fixes this repository's findings most important first, /cca-scan scans it"
+      "description": "Skills that write about your codebase (assessment, onboarding, changelog, release notes, sprint planning and more), the cca MCP server, /cca-fix and /cca-scan"
     },
     {
       "name": "assay",

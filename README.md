@@ -1,17 +1,33 @@
 # Canine Skills
 
-Skills and plugins for your AI coding tool from Canine Development, built on what our scans measure. One marketplace (`canine`),
-published as `CanineCC/canine-skills` and staged in Canine's own repository, where every skill is generated from the same source the
-service serves, so the two never differ. Open source (MIT).
+Skills for your own AI tool from Canine Development: it writes about your codebase (an assessment, an onboarding note, a changelog,
+release notes, a sprint plan, a review before you ship) with the facts our scan measured beside its own reading of the code. Your AI
+writes, at your cost and in your words; the scan gives it what reading files cannot: the whole repository at once, its git history,
+today's vulnerability databases and whether earlier fixes held. Open source (MIT).
+
+## Get them
+
+**The easy way: ask your AI.** Paste this into your AI tool:
+
+> Get the Canine skills for me from https://github.com/CanineCC/canine-skills . In Claude Code: run `claude plugin marketplace add
+> CanineCC/canine-skills` and then `claude plugin install cca@canine`. In any other tool: copy the folders under `cca/skills` (each
+> holds a SKILL.md) into the folder where you read skills; if you read no skills folder, add a line to AGENTS.md in my project saying
+> to read the matching skill there before writing about the codebase. Then tell me in one sentence what you did.
+
+**Claude Code by hand:**
 
 ```
 claude plugin marketplace add CanineCC/canine-skills
 claude plugin install cca@canine
 ```
 
-(Inside a session: `/plugin marketplace add CanineCC/canine-skills`, then `/plugin install cca@canine`.)
+(Inside a session: `/plugin marketplace add CanineCC/canine-skills`, then `/plugin install cca@canine`.) The plugin brings the
+skills, the `cca` MCP server they read from and the `/cca-fix` command. Once installed, your AI picks a skill by itself when you ask
+for that kind of work, like any other skill: "write an onboarding note for Lasse", "is this ready to ship?", "release notes for our
+customers as a PDF".
 
-The skills are plain Markdown (`SKILL.md`), so any AI tool that reads skills can use them; they work through the `cca` MCP server.
+The skills are plain Markdown (`SKILL.md`), generated from one source in Canine's own repository. They read their facts through the
+`cca` MCP server, which serves data only.
 
 ## CCA (for Assure, Assert and CCA)
 
@@ -38,7 +54,7 @@ One MCP server for every product: `/mcp/cca`.
   history, with security from the scan). In each, the scan is your AI's map: it has read the whole repository, its git history and the
   vulnerability databases, so your AI knows where to look, then opens those files itself, checks each finding in context and adds
   what only reading shows, keeping what the scan measured apart from what it saw. Your AI uses them when you ask for that kind of
-  work; each is the same text the server offers as an MCP prompt of the same name, generated from one source.
+  work.
 - **Reminder:** when a change touches C#, Java, Kotlin or Scala, a Stop hook reminds the agent to run `check_dependencies` before
   reporting the work done. It never blocks. Turn it off with `CCA_NUDGE=off`.
 
@@ -50,4 +66,4 @@ One MCP server for every product: `/mcp/cca`.
   Allow `mcp__plugin_assay_assay__*`.
 - **Skill** `due-diligence`: a memo on one codebase for the people deciding: what you would inherit, the risks that carry a price,
   what to ask the seller and what the seller should fix or disclose before closing. Where you have the code, your AI opens what the
-  report points to. The same text the server offers as an MCP prompt.
+  report points to.

@@ -1,6 +1,6 @@
 ---
 name: review-branch
-description: "Review a branch before it is merged: the scan of its head against the default branch (what findings arrive and leave, which scores move), and your own reading of the diff. Uses the cca MCP server's tools."
+description: "Review a branch or pull request before it is merged, with what it adds and removes in the scan. Use whenever someone asks to review a branch, a PR, a merge request or their changes before merging. Uses the cca MCP server's tools."
 ---
 
 <!-- Generated from the same source as the cca server's MCP prompt of the same name; do not edit by hand. -->

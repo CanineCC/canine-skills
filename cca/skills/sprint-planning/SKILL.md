@@ -1,6 +1,6 @@
 ---
 name: sprint-planning
-description: "Propose what the team takes into the next sprint from what the scan found: security first, the most improvement for the effort, items that touch the same files kept together, fitted to the team's capacity. Uses the cca MCP server's tools."
+description: "Plan the next sprint from what the scan found: security first, the most improvement for the effort, fitted to the team's capacity. Use whenever someone asks to plan a sprint, an iteration or the next weeks of work, prioritise the backlog, or decide what to fix next with the time they have. Uses the cca MCP server's tools."
 ---
 
 <!-- Generated from the same source as the cca server's MCP prompt of the same name; do not edit by hand. -->

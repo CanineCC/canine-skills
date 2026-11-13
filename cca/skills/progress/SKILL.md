@@ -1,6 +1,6 @@
 ---
 name: progress
-description: "How this repository's quality has moved: what improved, what got worse, what changed in the measurement itself, and whether reported fixes held. Uses the cca MCP server's tools."
+description: "Say how the code's quality has moved over time and whether fixes held. Use whenever someone asks whether the code got better or worse, how quality is trending, what changed since a date, or whether the fixes their AI made actually worked. Uses the cca MCP server's tools."
 ---
 
 <!-- Generated from the same source as the cca server's MCP prompt of the same name; do not edit by hand. -->

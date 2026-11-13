@@ -1,6 +1,6 @@
 ---
 name: assess
-description: "A written assessment of this repository's code for a reader: its quality, strengths, weaknesses, how it is moving and what to do first, built on this service's measurements and your own reading of the code they point to. Uses the cca MCP server's tools."
+description: "Assess this codebase for a person: how good it is, its strengths and weaknesses, the risks, how it is moving and what to fix first, for the person, their manager, a board or a buyer. Use whenever someone asks how good, healthy, solid or risky the code is, wants a code review of the whole project, a quality report, a technical assessment or due diligence, or 'what state is this in', even if they do not mention a scan. Uses the cca MCP server's tools."
 ---
 
 <!-- Generated from the same source as the cca server's MCP prompt of the same name; do not edit by hand. -->

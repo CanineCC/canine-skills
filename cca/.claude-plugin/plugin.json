@@ -1,7 +1,7 @@
 {
   "name": "cca",
-  "version": "2.9.0",
-  "description": "The cca MCP server, /cca-fix to fix this repository's findings most important first, /cca-scan to scan it, and the skills assess, onboard, progress and compare",
+  "version": "3.0.0",
+  "description": "Skills that write about your codebase (assess, onboard, progress, compare, before-ship, safe-change, review-branch, sprint-planning, retrospective, changelog, release-notes), the cca MCP server they read from, /cca-fix to fix this repository's findings most important first, and /cca-scan to scan it",
   "author": {
     "name": "Canine"
   }

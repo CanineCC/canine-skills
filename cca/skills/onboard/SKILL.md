@@ -1,6 +1,6 @@
 ---
 name: onboard
-description: "An onboarding note for someone new to this codebase: what it is, how it is laid out, how work flows through it, where it changes most and where to be careful, from this service's map and the code it points to. Uses the cca MCP server's tools."
+description: "Write an onboarding document for someone new to this codebase: what it is, how it is laid out, how work flows through it, where it changes most and where to be careful. Use whenever someone asks to onboard a person, write an onboarding note, a getting-started or welcome guide, an introduction or a 'how this code works' for a new developer or colleague. Uses the cca MCP server's tools."
 ---
 
 <!-- Generated from the same source as the cca server's MCP prompt of the same name; do not edit by hand. -->

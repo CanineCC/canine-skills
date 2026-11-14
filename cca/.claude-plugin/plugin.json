@@ -1,6 +1,6 @@
 {
   "name": "cca",
-  "version": "4.2.0",
+  "version": "4.3.0",
   "description": "Skills that write about your codebase (assess, onboard, progress, compare, before-ship, safe-change, review-branch, sprint-planning, retrospective, changelog, release-notes) (they read from the cca MCP server, which you add yourself), /cca-fix to fix this repository's findings most important first, and /cca-scan to scan it",
   "author": {
     "name": "Canine"

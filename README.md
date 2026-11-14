@@ -66,4 +66,5 @@ One MCP server for every product: `/mcp/cca`.
   Allow `mcp__plugin_assay_assay__*`.
 - **Skill** `due-diligence`: a memo on one codebase for the people deciding: what you would inherit, the risks that carry a price,
   what to ask the seller and what the seller should fix or disclose before closing. Where you have the code, your AI opens what the
-  report points to.
+  report points to. With no Assay key but the `cca` server connected, it writes the memo from that project's latest scan and says that
+  nothing in it is verified.

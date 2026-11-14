@@ -1,132 +1,164 @@
 ---
 name: safe-change
-description: "Prepares a change to one file so it does not break what depends on it: the files that change together with it, the modules that depend on it, the findings already in it, the tests that cover it and the order to work in, written before any code. Use whenever someone is about to change, refactor, move or delete a file or module and asks what to watch out for, what could break, or what touches it. Uses the cca MCP server's tools."
+description: "Prepares a change to one file so it does not break what depends on it: who calls and constructs it, the behaviour other code relies on, the checks and docs that watch it without a compile error, the files that change together with it, the modules that depend on it, the findings in and around it, the tests that pin it and the order to work in, written before any code. Use whenever someone is about to change, refactor, move or delete a file or module and asks what to watch out for, what could break, what depends on it or what touches it. Uses the cca MCP server's tools for the few facts reading cannot give."
 ---
 
 # Before changing a file
 
-Default reader: the developer about to make the change; file paths, function names and commit ids are expected. Period: the whole
-git history the scan read. Form: a change brief in the chat. If the reader does not write code (a product owner, a manager),
-follow "For a reader who does not write code" below. The file is the one the person names; if none, the one file with
-uncommitted changes (`git status`); if there is not exactly one, ask which file.
+After one read, the reader can make the change without breaking anything: what to check first, every place that calls, builds
+or consumes the file, the rules other code relies on, the silent checks, which tests pin what, what nothing catches, the order.
+The repository supplies most of the brief; the server adds only dependent modules, co-change partners and the findings nearby.
+
+Defaults: the reader is the developer making the change; the form is a Markdown brief in the chat; the file is the one named,
+else the one file with uncommitted changes (`git status`), else ask which. No code is changed unless asked.
+The person's own words win over these defaults (reader, focus, form; a PDF or a document: make it with your tools, or say it
+cannot). Take the default for anything missing, say which in one line, and never hand over a list of technical options.
 
 ## Words
-- **server**: the cca MCP server; its tools are named `cca:<tool>`. A **scan** is one run of it, named by its date and commit.
-- **finding**: one problem the scan found at a place in the code. A **refused fix** is a finding with a `refusedResolution`:
-  reported fixed and found again by a later scan.
-- **change brief**: what this skill writes. **Co-change partners**: files that changed together with this one in the git
-  history. **Dependent modules**: every module that depends on the file's module, directly or not. **Callers**: the places in
-  the code that call it, found by reading.
+- **server**: the cca MCP server, tools named `cca:<tool>`. A **scan** is its analysis of one commit, named by date and commit.
+- **brief**: what this skill writes. The **reader** is who it is for; the **person** is who asked (often the same).
+- **finding**: one problem the scan found at one place. A **refused resolution** has a `refusedResolution` (reported fixed,
+  found again); a **blocked** finding has a `maintainerNote` (disputed, then confirmed true by a maintainer).
+- **repeated-repair spot**: a file whose recent changes were mostly fixes; the finding's `detail` gives the count.
+- **module**: a namespace or package as the scan maps it, not a project. Write "two namespaces depend on it".
+- **type pair**: the two types, one on each side, that create a link from a dependent module to this one.
+- **co-change partner**: a file committed together with this one, with the number of shared commits.
+- **neighbour set**: exactly these paths, nothing else: the file itself; each non-test file holding a direct caller found by
+  `git grep` in step 2; the top five co-change partners from step 4.
+- **silent check**: a script, test, ratchet or audit that fails without a compile error.
 
-## Rules for this skill
-- If the server's tools are missing or say you must sign in, stop before you write anything. Tell the person in one line: in
-  Claude Code, type /mcp, choose cca and sign in (a server added during this chat may need a new chat). Write without the scan
-  only if they ask, and then say at the top that the scan was not used.
-- The person's own words win over these defaults: the reader, the focus and the form (a PDF or a document: make it with what
-  your tool has, or say it cannot). When something else is missing, take the default and say in one line which you used. Never
-  hand the person a list of technical options to choose from.
-- Every number comes from a server answer or a count you made with git or the files, and names its scan. A claim about what a
-  test or a caller does comes from reading it; if you did not read it, say so.
-- Keep what the scan measured (name the scan) apart from what you read (name the files).
-- A finding is measured the same way on every repository: never call a correct one a matter of taste.
-  Never explain how the score is counted; say what was found and what it means.
+## Rules
+- **Signing in.** If the server's tools are missing or say you must sign in, stop before you write anything. Tell the person
+  in one line: in Claude Code, type /mcp, choose cca and sign in (a server added during this chat may need a new chat). Write
+  without the scan only if they ask, and then say so at the top.
+- **Opened, not recalled.** Open every file:line you name at that line. Make every count, and make it equal the items listed
+  beside it ("six sites" above six). Look it up instead of hedging ("may be among them"). State what a test, caller or script
+  does only after reading it, and "only X catches this" only after searching for the others.
+- **Where behaviour lives.** Before calling a comment current or stale, open the code it describes. Behaviour often sits one
+  hop away (a retry in the caller, or further down the same pipeline): give the file:line where it actually is.
+- **The brief only.** Start with its title: no preamble, no "I" or "my count", no offer of other tools. Keep what the scan
+  measured (scan named) apart from what the files show; never call a correct finding a matter of taste. Give no score.
+- **Each fact once.** "Check first" gives the riskiest facts in one line each, pointing to their row; prose repeats no row.
 
-## Workflow
-
-Copy this checklist and tick it off:
+## Workflow (copy this checklist and tick it off)
 
 ```
 Safe-change progress:
-- [ ] 0. Ask the server about the file
-- [ ] 1. Co-change partners and dependent modules
-- [ ] 2. What is already wrong there
-- [ ] 3. Read the file, its partners, tests and callers
-- [ ] 4. Write the change brief, before any code
-- [ ] 5. Make the change, if asked, and check the diff
-- [ ] 6. Check the change brief and add the closing paragraph
+- [ ] 1. Read the file and the repository's rules for it
+- [ ] 2. Find its callers, constructions, consumers and the behaviour they rely on
+- [ ] 3. Find the silent checks, docs and comments that watch it
+- [ ] 4. Call cca:get_architecture for dependents, co-change partners and scan age
+- [ ] 5. Call cca:list_findings and keep the neighbour set's findings
+- [ ] 6. Map the tests: what pins each rule, what nothing catches
+- [ ] 7. Write the brief from the template
+- [ ] 8. Change code only if asked, then call cca:check_dependencies on the diff
+- [ ] 9. Verify the brief, then write the lines for the person
 ```
 
-### 0. Ask the server about the file
-Call `cca:get_architecture` with `path` set to the file. If the tool is missing or says you must sign in, follow the sign-in rule.
+**1. Read the file and the repository's rules for it.** Read the file, then whatever exists of CLAUDE.md, AGENTS.md,
+CONTRIBUTING, the docs for its area, and every ADR, issue or rule id its comments cite. Note each rule the file keeps (an
+order, a transaction boundary, an idempotency) with its line and the bug or ADR behind it, and the gate tiers from the build
+scripts and CI.
 
-### 1. Co-change partners and dependent modules
-From that answer keep the co-change partners, with how often each changed with the file, and `baseline` (the scan and its
-commit). If no partner is named, quote its `note`. The file's module is the namespace or package declared in its first lines, or
-else its directory. Call `cca:get_architecture` with `module` set to it (if the answer offers closest names, take the one that
-matches the file's directory) and keep the dependent modules.
-If no name matches: say in one line that the scan has no module for this file, and leave dependent modules out.
+**2. Find its callers, constructions, consumers and the behaviour they rely on.** Search the type and each public member with
+`git grep -n`, then list:
+- production callers, with what each does with the result;
+- DI registrations;
+- every hand construction (`new`, factories, test helpers), with file:line and whether arguments are positional;
+- every handler of an event or notice it emits, with the field each reads;
+- fixture wiring to keep (one fake passed twice).
 
-### 2. What is already wrong there
-`cca:list_findings`, walking every page with `offset` until `truncated` is false. Keep the findings in the file and in its
-co-change partners. For each refused fix, read its `refusedResolution` note before trying the same fix.
-If no finding matches: the brief says the scan found nothing open there.
+**3. Find the silent checks, docs and comments that watch it.** Search the file name and `<filename>:` with `git grep -n`
+over docs, scripts, CI and tests. Open each hit and note what it checks and how a change trips it (lines move under a line
+citation; a ratchet counts a pattern a refactor adds; an audit stops seeing code moved out of its files). List the docs and
+comments that describe the file, current or stale.
 
-### 3. Read the file, its partners, tests and callers
-Open the file, its co-change partners, its tests and its callers. A test you did not open is named as not read.
+**4. Call `cca:get_architecture` for dependents, co-change partners and scan age.** Pass `path` (the file) and `module` (the
+namespace or package in its first lines). If the module has no dependents, call again with `module` only, taking the offered
+name that matches the directory. Use only these parts of the answer:
+- dependents with the type pair behind each link, the blast radius and the cycle flag; warn that a new reference the person
+  plans to a dependent would close a cycle.
+- co-change partners with counts. If none is named, count them from git (the file's commits, the files in them, top five)
+  and write "6 of its 11 commits (git history)"; an empty partner list is not a fact about the code.
+- `baseline` and `contribution`. If `git rev-list --count <baseline>..HEAD -- <neighbour set>` is not zero, say the scan
+  predates that many commits to these files and confirm each finding at its place.
 
-### 4. Write the change brief, before any code
-Use this shape:
+**5. Call `cca:list_findings` and keep the neighbour set's findings.** Write the neighbour set as a sorted path list. Call
+`cca:list_findings` with `limit` 500 (the most one page holds), walking `offset` until `truncated` is false, and filter by the list with a script, so
+two briefs on one file at one commit list the same findings. Order them:
+- security (`cwe`, `owaspCategory`, a security dimension), or "no security finding in these files";
+- refused resolutions, with what already failed;
+- blocked findings and repeated-repair spots, with counts and the `maintainerNote` in its own words;
+- the rest.
+
+Give one line each on what it means for this change; findings in files the change does not edit share one line.
+
+**6. Map the tests: what pins each rule, what nothing catches.** Count the file's tests and name the ones that pin each rule
+from step 1. Before writing "test T fails if X", read T's fixture: if it already starts in the state X guards (a game already
+over, a list already empty), T stays green and the rule is uncaught. Write "nothing catches it" for such a rule, with one
+sentence on the test that would. Name the integration and end-to-end suites that exercise the file.
+
+**7. Write the brief from the template.** Leave out an empty section; when the person asks what depends on the file, put the
+callers section first.
 
 ```markdown
 # Changing <file>
 
-<Two sentences: what the change touches beyond this file, and the main risk. Scan of <date>, commit <baseline commit>.>
-
-## What it touches
-<Each co-change partner (changed together in <n> of <m> commits), caller and dependent module, and why it matters here.>
-
+<Three sentences: what it does; what a change reaches (counts matching the lists below); the main risk, loud or silent.>
+## Check first
+1. <Riskiest fact, file:line, what catches it or "nothing catches it"; one line, pointing to its row below.>
+## Who calls, builds and consumes it
+- Production callers: <file:line, what each relies on (a return value's meaning, a status skipped before the call)>
+- DI: <file:line> · Hand constructions (<n>, positional): <each file:line>
+- Consumers: <handler file:line, the field it reads>
+- Dependent namespaces (scan of <date>): <namespace, through <type> -> <type>>; cycle or none
+## Rules it keeps
+| Rule | Line | Why (bug, ADR) | Pinned by, or "nothing catches it" |
+## Checks that fail without a compile error
+| Check | What it watches here | How a change trips it |
+## What changes with it
+<Co-change partners with counts and source; stale docs and comments with where the behaviour really lives.>
 ## What is already wrong here
-<Findings to fix with this change, those it must not make worse, and each refused fix with what already failed.>
-
-## Tests
-<Which tests cover it and what they check; which are missing.>
-
+<Scan (date, commit) and commits since; security or "none"; refused; blocked and repeated-repair; the rest.>
 ## Order
-<The steps, in the order to make them.>
+<Failing test first; stage a defect per uncaught rule, naming the test that should fail; the change with every site and doc
+in one commit; regenerated registers; gate tiers; dependency check; smoke run.>
+
+No code was changed.
 ```
 
-### 5. Make the change, if asked, and check the diff
-Only if the person asked for the change; otherwise end the brief with one line saying no code was changed. After the change,
-pass `git diff -U100000 <baseline commit>` as `diff` to `cca:check_dependencies` (the wide context puts each changed file in
-whole, so its imports are seen). For each answer with `"drift": true`, fix the dependency or say plainly why it is intended, and
-pass the new diff again, until every remaining drift is one you explain. End the brief with one line on how the check ended.
-If the tool fails: say the dependency check was not run.
+**8. Change code only if asked, then call `cca:check_dependencies` on the diff.** Pass `git diff -U100000 <baseline commit>`
+as `diff` (whole files, so the check sees each namespace line). Correct each `"drift": true` or say why it is intended, until
+none is unexplained. Mark a fixed finding with `cca:resolve_finding`, saying what changed. If a write call is refused, or an
+answer was far larger than the part used (`cca:report_platform_issue`: tool and both sizes), give the person the ready text.
 
-### 6. Check the change brief and add the closing paragraph
-Check, one by one:
-- every file you name exists;
-- every co-change partner and dependent module came from step 1, with its count;
-- every claim about a test comes from reading it, and an unread test is named as not read;
-- every refused fix from step 2 is under "What is already wrong here" with what already failed;
-- the scan is named (its date, and its commit unless the reader does not write code);
-- the brief says whether code was changed, and how the dependency check ended;
-- for a reader who does not write code, the brief passes the section below.
+**9. Verify the brief, then write the lines for the person.** Verify one by one:
+- every file:line exists and says what the brief says; every count matches its list;
+- every caller, construction, consumer and silent check from steps 2 and 3 is in;
+- every rule has a test or "nothing catches it"; every stale claim names where the behaviour lives;
+- every neighbour-set finding is listed; there is no preamble.
 
-Fix each item that fails, then check the whole list again. When all pass, add the closing paragraph: a short paragraph on what
-the server gave this answer, only from the `contribution` items that changed it, each as what the brief would otherwise have
-got wrong or lacked. If none changed it, leave the paragraph out.
+Correct the brief and verify again until all pass. Then, after `---`, write for the person, not the reader, starting "For
+you, who asked:": the default used, if any, and every server fact that changed the brief (from `contribution` items), each
+as what the brief would otherwise have got wrong or lacked, with its number or file. Name nothing that did not change it (a
+scan at HEAD changed nothing). No tool names. If no server fact changed the brief, leave the lines out.
 
 ## For a reader who does not write code
-The risk in plain words first, on one screen, with the same numbers as the body. No tool names, commit hashes or check ids; the
-scan by its date only. Say what was not read or checked as plainly as what was.
+When the person writes in plain words, says they do not code, or asks what could break for the product or its users: open with
+one screen in plain words (no paths, ids, line numbers or tool names; the scan by its date), saying what was not checked as
+plainly as what was. The developer brief follows under "For the developer who makes the change".
 
 ## Examples
 
-For the developer making the change, lines under "What it touches", "What is already wrong here" and "Order", and the last line:
+"Check first" and "What is already wrong here", for a developer:
 
-> `src/orders/checkout.py` changed together with this file in 18 of its 22 commits (scan of 12 November, commit `a1b2c3d`), and
-> `CheckoutView.submit` calls `apply_discount` expecting a total that is never negative; keep that true.
+> 1. `docs/fallbacks.md:88` cites `pricing.py:212` by line: moving lines above it turns `scripts/audit-fallbacks.sh` red until
+>    the regenerated register is committed. The retry the comment at `pricing.py:40` describes is at `checkout.py:141`.
 >
-> The scan of 12 November finds `apply_discount` too complex (one finding); splitting it is part of this change. A refused fix:
-> reported fixed in `d4e5f6a` and found again, because the split left the rounding branch in `apply_discount`; do not repeat it.
->
-> 1. Add a test for a discount larger than the total. 2. Split `apply_discount`, rounding included. 3. Change `checkout.py` in
-> the same commit.
->
-> No code was changed; the dependency check was not run.
+> `src/orders/checkout.py`, which calls this file, is a repeated-repair spot: 4 of its last 5 changes were fixes (scan of
+> 12 November, 3 commits behind HEAD for these files); its maintainer note: "the rounding copy is real, merge the two".
 
 For a product owner asking what could break, the opening:
 
-> Changing how prices are worked out also touches checkout, which changed together with it in 18 of 22 changes (scan of
-> 12 November), and the order and invoice parts that rely on it. The main risk is a negative total reaching an invoice, and no
-> test checks for that today.
+> Changing how prices are worked out also touches checkout and the invoice screen, which both rely on a total that is never
+> negative. Nothing tests that today, and a mistake would not stop the build: it would show as a wrong invoice.

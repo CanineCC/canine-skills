@@ -1,151 +1,162 @@
 ---
 name: retrospective
-description: "Writes a retrospective of the code's quality over a sprint or period: what went well, what did not, which fixes held, and three things to try next. Use whenever someone asks for a retro, a retrospective, a sprint review or 'how did we do' on the code. Uses the cca MCP server's tools."
+description: "Writes a retrospective of a sprint or period for the team's meeting: what was done, by theme, the bugs found along the way, what went well and what did not in how the work was done, where the code stands, and concrete things to try next sprint, each backed by the commits. Use whenever someone asks for a retro, a retrospective, a sprint review or 'how did we do' on the code. Uses the cca MCP server's tools for the few facts git cannot give: what the code did to the score apart from changes in measuring, and fixes that did not hold."
 ---
 
 # Retrospective
 
-## Words
-- **server**: the cca MCP server; its tools are named `cca:<tool>`. A **scan** is one run of it over the repository, named by
-  its commit and date. A **finding** is one problem the scan found at a place in the code.
-- **dimension**: one kind of check, with an id such as `D15`. A **lens** groups dimensions; the **headline** is the overall score.
-  The **security dimensions** are `D13` secrets in the code, `D28` secrets in the git history, `D29` security bugs found by
-  static analysis, `D30` dependencies with known vulnerabilities, `D31` container and infrastructure configuration, `D32`
-  personal data.
-- **plan**: the ranked list of causes in `cca:audit` (a **cause** groups findings with one remedy).
-- **reported fix**: a finding someone reported done; it **held** when its dimension scored higher, and **did not hold** when a
-  later scan found it again.
-- **trend point**: one scan on the trend. A **move** is the difference between two trend points' scores. A **mark** is a point
-  on the trend where the way of measuring changed; a move across a mark is partly or wholly a change in measuring.
-- **unexplained move**: two neighbouring trend points whose headline differs with no commit and no mark between them (an empty
-  `git log <commit a>..<commit b>`).
-- **What the code did** over the period: `codeMove` from `cca:get_trend` when the period is the whole trend; for a shorter
-  period, the `headline` at its last trend point minus the `headline` at its first, minus each mark's `headlineDelta` inside it,
-  minus each unexplained move.
-- **A lens's move** over the period: its score at the last trend point minus its score at the first, raw.
+The reader is the team at its retro. Afterwards they can say what the period went into, which habits to keep and which to
+change, and leave with tries to act on next sprint. Git and the team's rules carry it. The server adds what git cannot: how
+much of a score move was the code and how much a change in measuring, fixes that did not hold, areas not measured.
 
-## Rules for this skill
+## Words
+- **server**: the cca MCP server, tools named `cca:<tool>`. A **scan** is one measurement of the repository by the server,
+  named by its date and commit. An **item** is an issue or backlog item a commit names (`#212`).
+- **score**: one number per scan, 0 to 100: `headline` on `cca:get_trend`, the same number as `health` on `cca:audit`.
+- **trend point**: one scan on `cca:get_trend`. Its **trend lenses** give a **lens value** per area (security,
+  accessibility, code health...; say each by its area). A **mark** is a change in the way of measuring, with its `sentence`
+  and `headlineDelta`.
+- **unexplained move**: neighbouring trend points whose score differs with no commit and no mark between them.
+- **security dimension**: one measure under the security lens, 0 to 10, passed to the tools as `dimension`: `D13` secrets in
+  the code, `D28` secrets in git history, `D29` static-analysis security bugs, `D30` vulnerable dependencies, `D31` container
+  and infrastructure settings, `D32` personal data. The **audit lens entries** are the entries under `lenses` on `cca:audit`.
+- **fix that did not hold**: a finding the team marked fixed that the next scan still found (`queue.resolutionsRefused`).
+- **the team's rules**: what the repository's own docs ask of the work (step 1). The skill's own rules are under Rules.
+
+## Rules
 - **Signing in.** If the server's tools are missing or say you must sign in, stop before you write anything. Tell the person in
   one line: in Claude Code, type /mcp, choose cca and sign in (a server added during this chat may need a new chat). Write
-  without the server only if they ask, and then say at the top that no scan was used.
-- **Defaults.** Reader: the team, at its meeting, who write code; a reader who does not write code (a manager, a client) gets
-  the same retrospective by the rule for that reader below. Period: the last sprint, the last two weeks unless a tag or date
-  says otherwise. Form: a reply in the chat. The person's own words win over these defaults: the reader, the focus, the
-  period and the form (a PDF or a document: make the file with what your tool has, or say it cannot). When something is
-  missing, take the default, write the retrospective, and say in one line which default you used.
-  Never hand the person a list of technical options to choose from.
-- **Scan and reading.** Keep apart what the scan measured (name the scan) and what you read (name the commits or files). A link
-  between a finding and a commit is your reading: say so. A correct finding is never a matter of taste.
-  Never explain how the score is counted.
-- **Numbers.** Every number comes from the server's answer or a count you made with git; a number about the code now names its
-  scan, a trend point names its date. Never present a mark's move or an unexplained move as the code's.
-- **Order of work.** Open security findings first, then the plan rows from the top.
-- **A reader who does not write code.** The short version first, on one screen, with the same numbers as the body. No tool
-  names, commit hashes or dimension ids; each scan by its date only; a lens or dimension only by what it measures.
+  from git alone only if they ask, and then say at the top that no scan was used.
+- **Defaults.** The period is the last two weeks up to today by calendar date; the reader writes code; the form is Markdown in
+  the chat, 80 to 120 lines. The person's own words win: the period (a tag, a sprint, dates), the reader, the focus ("what
+  should we try" puts the tries first) and the form (a PDF or a document: make it with what your tool has, or say it cannot).
+  Take the default for what is missing. Never hand the person a list of technical options to choose from.
+- **Credit a score move only to commits the scan had read**: commits in `git log <A>..<B>` for the trend points around it that
+  touch that area. A commit after B is not behind B's score, however well it fits. A move across a mark is measuring; an
+  unexplained move is never the code. Word a link as a reading ("likely from").
+- **Every count is exact**: count non-merge commits and merges apart, recount each with its command before you write it, and
+  take lines from the net diff. Write only files, commit ids, items and quotes you read in the repository.
+- **The team's rules are the yardstick**: name the rule you hold the work against. When a doc and the code or a newer doc
+  disagree, say which is right.
+- **What happened, not who, to the team.** Name no person and blame no one; write no "I", "my count", "I didn't check" (what
+  cannot be checked is an open question). The score is one section, not the spine; leave out scan internals the team cannot
+  act on. A correct finding is never a matter of taste.
+- **A reader who does not write code**: put a one-screen short version first with the same numbers; use no tool names, commit
+  ids, dimension ids or file paths; name each scan by its date.
 
 ## Workflow
-
 Copy this checklist and tick it off:
-
 ```
 Retrospective progress:
-- [ ] 0. Server answers (Signing in)
-- [ ] 1. What the code did
-- [ ] 2. Reported fixes that held and that did not
-- [ ] 3. What the scan holds now
-- [ ] 4. What was worked on
-- [ ] 5. Write the retrospective
-- [ ] 6. Check the retrospective and add the closing paragraph
+- [ ] 0. Confirm the server answers
+- [ ] 1. Read the team's rules
+- [ ] 2. Read git for what the period went into
+- [ ] 3. Separate what the code did to the score from measuring
+- [ ] 4. Read where the code stands
+- [ ] 5. Write from the template
+- [ ] 6. Verify, then write the lines for the person who asked
 ```
 
-**0. Server answers (Signing in).** Call `cca:get_trend` (no arguments). If the tool is missing or asks you to sign in: follow
-the sign-in rule. If it returns no trend point: write "There is no scan of this repository yet." and stop. If the period holds
-fewer than two trend points, open with "The scan shows no move for this period."
+### 0. Confirm the server answers
+If the cca tools are deferred, load them once by exact name:
+`select:mcp__cca__get_trend,mcp__cca__audit,mcp__cca__list_findings,mcp__cca__report_platform_issue`. If they are missing or
+ask you to sign in, follow the signing-in rule. Call `cca:get_trend` with no arguments. If it has no trend point, write from
+git, and under "Where the code stands" write "There is no scan of this repository yet."
 
-**1. What the code did.** Skip this step if the period holds fewer than two trend points. Keep the trend points inside the
-period (each has a date, `headline`, a commit and its lens scores) and the `marks` inside it (each with `at`, its `sentence`
-and `headlineDelta`). Report each unexplained move with `cca:report_platform_issue`, `area` "scan-pipeline", `title`
-"Unexplained trend move" and a `description` with both dates, commits and headlines. Then work out what the code did. If
-`cca:report_platform_issue` fails: say so under "Changes in how it is measured".
+### 1. Read the team's rules
+Read CLAUDE.md or AGENTS.md, CONTRIBUTING, the README and docs/ (SOPs, runbooks, ADRs), and note what they ask of item titles,
+gates, tests first, commits and ADRs.
 
-**2. Reported fixes that held and that did not.** Call `cca:audit` (no arguments). Keep `queue.resolutionsImproved` (reported
-fixes that held) and `queue.resolutionsRefused` (reported fixes that did not hold, each with its `refusedResolution` note).
-For each reported fix, keep its dimension and the file its finding names.
-If `cca:audit` fails: skip step 2, the plan parts of step 3 and the step 6 check on reported fixes; base the three things to
-try on security findings only, and say in one line that the plan could not be read.
+### 2. Read git for what the period went into
+Read `git log --since=<start> --until=<end>` (or the tag range) with the commit bodies, and `git diff --shortstat` for the
+period. From them:
+- Count commits per day, name the days with none, and count the conventional-commit types. Group the work into themes by item
+  or area in time order, and say how much of it is product work.
+- List as bugs the `fix` commits whose body describes a defect in behaviour, not a test, doc or style repair.
+- List what did not go well: reverts, repairs of what an earlier commit broke, one day far busier than the rest, one commit over
+  hundreds of files, a catch-all item, commits that only recount or regenerate what a script could, work against a team rule.
+- List what went well: habits the history shows, each with two or three commit ids.
+- Before you say a gate was not run, grep the bodies for its record (`--complete`, "gated", "green").
 
-**3. What the scan holds now.** From the same `cca:audit` answer keep `scan`, `queue.causesRemaining`, `queue.pointsRemaining`
-and the `plan` rows in order. Call `cca:list_findings` once for each security dimension, with that dimension and `state`
-"open", and read `totalMatching`. Keep every lens's move; the largest by size is the lens that moved most (with fewer than two
-trend points: leave out every lens move and use the lens of the first plan row instead). For each plan row
-naming that lens, call `cca:get_dimension` with `dimension` set to the row's dimension; keep its number of findings, the files
-they name, and `reliability.measured`. If no plan row names it: write that it has no open cause.
+### 3. Separate what the code did to the score from measuring
+Keep the trend points and marks inside the period. What the code did is the last score minus the first, minus each mark's
+`headlineDelta`, minus each unexplained move (for the whole trend: `codeMove.byTheCode`). Credit each lens value move of 3 or
+more by the crediting rule; one no commit explains is an open question. Report each unexplained move with
+`cca:report_platform_issue` (`area` "scan-pipeline", `title` "Unexplained trend move", `description` with both dates,
+commits and scores); if it cannot be called, its text goes to the person in step 6, never into the retrospective.
 
-**4. What was worked on.** Skip this step if the period holds fewer than two trend points. Run `git log --stat <first trend
-point's commit>..<last trend point's commit>` and group the work by top-level folder. Read the commits that touched the files
-from step 3 and each file of a reported fix that did not hold. If `git log` fails (no local clone, a shallow clone, a commit
-not fetched): say in one line that the commits could not be read and leave commit references out.
+### 4. Read where the code stands
+Call `cca:audit` with no arguments; read only `scan`, `health`, `band`, `queue`, the first three `plan` entries, the audit lens
+entries and `gapReports`.
+- Say a security dimension absent from the audit lens entries, or "not measured" in `gapReports`, is not measured, never clean.
+- For a security dimension below 10, call `cca:list_findings` (`dimension`, `state` "open") for the count and files; write none
+  if all await a ruling.
+- When `queue.resolutionsRefused` is above 0, put the fixes that did not hold under "What did not go well" with their files.
+- When `queue.decidedCauses` is above 0, call `cca:list_findings` (`disposition` "Accepted", `limit` 5): its files are evidence
+  for a code try (one repair repeated across screens), never a try about the scan. Make a `plan` entry a try only when it is
+  real work now.
 
-**5. Write the retrospective** in this shape:
+### 5. Write from the template
+Write from the template. In the sections after "Things to try", refer to a try ("see try 2") instead of repeating it.
 
 ```markdown
-# Retrospective, <first date> to <last date>
+# Retrospective, <start> to <end>
 
-<One sentence: what the code did, with its dates, and the one thing that stands out.>
+Sources: `<git range>` up to `<commit>` (<date>), and the scan of <date> (`<commit>`).
 
+## At a glance
+| | |
+|---|---|
+| Commits | <n> non-merge, <m> merges |
+| Days with commits | <d> of <days>: <date (n)>, ... **<busiest (n)>** |
+| Kind of work | <n> refactor, <n> test, <n> fix, <n> feat ... |
+| Size | <files> files, +<a> / -<b> lines (net over the period) |
+| Items | <n> distinct; <n> cite a number with no title |
+| Score | <first> (<date>) to <last> (<date>): the code did <x>, <k> changes in measuring <y>[, unexplained <z>] |
+
+<Two sentences: what the period went into, how much was product work, and the one thing that stands out.>
+## What we did
+- **<Theme> (<dates>).** <What changed for the code>, <items>, <two or three commit ids>.
+## Bugs found along the way
+- <The defect, in the user's terms> (`<commit>`, <item>).
 ## What went well
-<Each lens that rose (its two scores and dates) and each reported fix that held (its file), with the commits behind it.>
-
+- **<Habit to keep>.** <Evidence, with commit ids.>
 ## What did not go well
-<Each reported fix that did not hold (its file, its refusedResolution note, the commit that touched it) and each lens that fell.>
-
-## Where the code stands now
-<From the scan of <date>: open security findings by dimension first, then causes remaining and points remaining, then the
-lens that moved most and each of its dimensions with its number of findings. Present a dimension whose reliability.measured
-is false as neither certain nor noise.>
-
-## Changes in how it is measured
-<Each mark's own sentence with its date, and each unexplained move, apart from the code. Unless the period is the whole
-trend: one line that lens moves include any change in measuring.>
-
-## Three things to try next
-1. <In the order of work. Each checkable by a later scan.>
-2. ...
-3. ...
+- **<What cost>.** <Evidence and what it cost>, or "see try <n>".
+## Where the code stands (scan of <date>)
+- **Score:** <score>, band <band>; <fixes that did not hold, or "every reported fix held">.
+- **Security:** <open findings or "none open">. **Not measured:** <each dimension by its area>: unknown, not clean.
+- **What the code did / Measuring:** <see example 1>.
+## Things to try next sprint
+1. **<The try.>** <Evidence, counts, commit ids.> Try: <action>. Check: <what the next retro will see>. (three to seven)
+## Open questions for the team
+- <What history cannot settle: whether the pace was planned, a lens move no commit explains.>
 ```
 
-**6. Check the retrospective and add the closing paragraph.** Check, one by one:
-- with two or more trend points: what the code did follows its definition, and every unexplained move was reported or the
-  failed call is said;
-- every item under "What went well" and "What did not go well" names its scan, and its commit for the team unless step 4
-  said the commits could not be read;
-- every reported fix from step 2 appears under one of those two sections;
-- every link between a finding and a commit is marked as your reading;
-- every number names its scan or trend date;
-- the three things to try follow the order of work, and each can be checked by a later scan;
-- unless the period is the whole trend, the retrospective says once that lens moves include any change in measuring;
-- for a reader who does not write code: no tool names, commit hashes or dimension ids;
-- the retrospective says what happened to the code, and names or blames no person.
+### 6. Verify, then write the lines for the person who asked
+Verify each line against this list, correct each failure, and verify again:
+- every count recounted; merges apart; per-day counts sum to the total; lines from the net diff;
+- every lens value move credited only to commits in its window that touch its area; none to a mark or an unexplained move;
+- every security dimension not measured said so; every bug a defect in behaviour; no section repeats a try; every team rule
+  cited exists;
+- every try has evidence and a check, and is work for the team; no "I", no person blamed.
 
-Fix each item that fails, then check the whole list again. When all pass, end with the closing paragraph the server's
-instructions describe, from the `contribution` items that changed this retrospective.
+Then, below the retrospective and to the person who asked (not the team), write: the default you took; if
+`cca:report_platform_issue` could not be called, "Please send this to the service: Unexplained trend move, <date A>
+`<commit>` <score> to <date B> `<commit>` <score>, no commit and no mark between them."; last, a short closing paragraph as
+the server's instructions describe, from the `contribution` items that changed this retrospective, leading with what it would
+otherwise have got wrong.
 
 ## Examples
 
-For the team, the opening and one item under "What did not go well":
+1. Under "Where the code stands", for the team:
 
-> Headline 68 at the scan of 30 October (`3f9a1c2`), 73 at the scan of 13 November (`8d0e4b7`); one mark inside the sprint (a
-> new way of counting duplicated code) moved it +2, so the code did +3.
->
-> The reported fix to `src/auth/session.ts` did not hold: the scan of 13 November finds the token still logged ("log call
-> kept at line 88"). Commit `5c21e0a` touched the file but moved the call rather than removing it (my reading).
+> **What the code did:** the score went from 71.2 to 84.0; the code did +4.1, three changes in measuring did +8.7, and the fall
+> to 62 on 9 May is one of them, not a regression. Security rose 6 at the scan of 7 May (`a41c0d2`); the only dependency commit
+> in that window is `9e1b3f0`, so likely from that upgrade. The contrast fixes (`c2d7e81`, 8 May) came after that scan.
 
-For the team, a dimension whose `reliability.measured` is false, under "Where the code stands now":
+2. Under "Things to try next sprint":
 
-> `D17`: 12 findings in `src/legacy/`; this check is not yet measured as reliable, so treat them as worth a look, not as settled.
-
-For a manager who does not write code, the same sprint:
-
-> Between the scans of 30 October and 13 November the code itself got 3 better on its quality score, out of a rise of 5; the
-> other 2 came from a change in how copied code is counted. One reported fix, to how sign-in sessions are logged, did not
-> hold, and the team will finish it next.
+> 2. **Stop filing work under one catch-all item.** 41 non-merge commits went under #212 "cleanup", 12 with no title, though
+>    CLAUDE.md asks for one; from 6 May the titled items #230 to #241 carried 1 to 3 commits each. Try: one item per
+>    cluster, filed before the work starts. Check: no item carries more than ten commits.

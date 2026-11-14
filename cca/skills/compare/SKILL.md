@@ -1,28 +1,42 @@
 ---
 name: compare
-description: "Reads ten production files closely on its own, then compares that review with the repository's code-quality scan of the same files in three piles (found by both, found only by the scan, found only by the review), disputing wrong findings and reporting missed problems. Use when someone asks for a manual or AI code review checked against the scan, or what an AI review misses compared with a full scan. Uses the cca MCP server's tools."
+description: "Reviews the most important production files of a repository closely on its own, then compares that review with the repository's code-quality scan of the same files: what both found, what only the scan found, what only the review found, which side was better at what, and what to fix first. Disputes scan findings that do not hold and reports real problems the scan missed. Use when someone asks for a manual or AI code review checked against the scan, or what an AI review misses compared with a full scan. Uses the cca MCP server's tools."
 ---
 
 # Review against the scan
 
-**Defaults.** Reader: the person who asked, who writes code. Period: the latest scan. Form: Markdown in the chat. Files: 10
-production files chosen as in step 1. The person's own words win over these defaults: the reader, the files or their number, and
-the form, such as a PDF. When something is missing, take the
-default, do the work and say in one line which default you used; never hand the person a list of technical options to choose from.
+**What the reader needs afterwards.** For the files that matter most: which real problems each side found, which side to trust
+for what kind of problem, and what to fix first. Every claim is verified in the code.
 
-**Words.** The **server** is the cca MCP server (tools `cca:<tool>`). A **scan** is the server's analysis of the repository at one commit, named by commit and date. A
-**finding** is one problem the scan found at one place. A **dimension** is the kind of problem a finding belongs to, named by
-an id such as `D15`. A **production file** ships (not a test, fixture, generated or vendored
-file). **The review** is your own reading in step 2; each problem it lists is a **review item**. A
-**fingerprint** is a finding's stable id, as `cca:list_findings` returns it; a **receipt** is the id `cca:report_detector_gap`
-returns. The **`contribution`** items are the facts each answer of the server says it added.
+**Defaults.** Reader: the person who asked, who writes code. Scan: the latest. Form: Markdown in the chat. Files: the 6 most
+important production files (step 1). The person's own words win over these defaults: the reader, the files or their number, the
+form (such as a PDF). When something is missing, take the default and say in one line, after the document, which one you used;
+never hand the person a list of technical options to choose from. For a reader who does not write code: plain words, the same
+numbers, no file:line, hashes or dimension ids, and the fixes as outcomes ("a failed delivery can stop the others").
 
-## Rules for this skill
+## Words
 
-- **The review stays your own.** Apart from the hotspot paths in step 0, nothing the scan says about the 10 files is read before the review is
-  written.
-- **Numbers.** Every number comes from the server's answer or a count you made (`wc -l`, counting the piles); never estimate.
-- **Findings.** A finding is measured the same way on every repository: never call a correct one a matter of taste.
+- **server**: the cca MCP server; its tools are `cca:<tool>`. A **scan** is its analysis of one commit.
+- **finding**: one problem the scan found at one place. Its **dimension** is the kind of problem it measures (an id such as `D4`,
+  named in words: "copied code"), with a **dimension score** out of 10.
+- **resolution**: a finding someone marked fixed through the server; the next scan refuses it when the problem is still there.
+- **module**: a namespace or package ("the part of the code under `<name>`"). Its **blast radius** is every module that depends on
+  it, directly or not.
+- **review**: your own reading of the chosen files (step 2), made of **review items**.
+- **pile**: one of three groups: found by both, found only by the scan, found only by the review.
+- **grade**: what a scan-only finding is after you read its code: holds, kept on purpose, or does not hold.
+- **gap report**: a problem the scan missed, filed with `cca:report_detector_gap`. A **receipt** is what a write call returns.
+- **`contribution` entries**: the facts each server answer says it added.
+
+## Rules
+
+- **The review stays your own.** Make no call that names a chosen file's findings before the review is written down.
+- **Verified, not assumed.** Re-open every file:line before you write it; count every count, never estimate it; quote a server
+  number as given. When a comment or doc says one thing and the code another, say which is right.
+- **Each review item carries its evidence.** Give it a consequence, a severity (high, medium or low) and "confirmed" or
+  "plausible", with the test that would prove it. Write no style remarks; drop a plausible low item that needs an unlikely state.
+- **Findings.** Never call a correct finding a matter of taste. A finding that does not hold is disputed and counts in no total.
+- **The reader's document.** Write no "I" or "my count", no tool names and no call failures in it; those go to the person after it.
 
 ## Workflow
 
@@ -30,97 +44,115 @@ Copy this checklist and tick it off:
 
 ```
 Compare progress:
-- [ ] 0. Hotspot paths
-- [ ] 1. Choose 10 files
-- [ ] 2. Your own review
-- [ ] 3. The scan's findings in those files
-- [ ] 4. Sort into three piles and follow up
-- [ ] 5. Write the report
-- [ ] 6. Check the report and add the closing paragraph
+- [ ] 0. Load the tools and read the scan's identity
+- [ ] 1. Choose the files
+- [ ] 2. Write down your own review
+- [ ] 3. Collect the scan's findings in those files
+- [ ] 4. Sort the findings into piles, grade them and send back disputes and gap reports
+- [ ] 5. Write the document
+- [ ] 6. Verify the document, then write the note to the person
 ```
 
-**0. Hotspot paths.** `cca:list_findings` with `dimension` `D15` (hotspots: files that change often and are complex). It is the
-only call to the server before step 3. Note only the file path of each row, in the order returned, before reading anything else
-from the answer and set the rest aside. If the server's tools are missing or say you must sign in,
-stop before you write anything and tell the person in one line: in Claude Code, type /mcp, choose cca and sign in (a server
-added during this chat may need a new chat). Write without the scan only if they ask, and then say at the top that it was not used.
+**0. Load the tools and read the scan's identity.** Load `cca:audit`, `cca:list_findings`, `cca:get_finding`,
+`cca:get_architecture`, `cca:get_dimension`, `cca:dispute_finding` and `cca:report_detector_gap` together. If they are missing or
+say you must sign in, stop before you write anything and tell the person in one line: in Claude Code,
+type /mcp, choose cca and sign in (a server added during this chat may need a new chat). If only `cca:dispute_finding`
+and `cca:report_detector_gap` are missing, say so in one line and go on. Call `cca:audit` (it names no file) and keep
+three fields: `scan.commit` and `scan.scannedAt`; `inventory.productionLines`; `queue.resolutionsRefused`.
 
-**1. Choose 10 files.** Keep the first 10 distinct production files among the noted paths. If fewer, fill up with the largest
-production files from:
+**1. Choose the files.** Read the repository's own docs and build files. Pick 6 production files, one per area: the entry point
+for outside input, the security boundary, the core every request or job passes through, and the most changed
+(`git log --since='90 days ago' --name-only --format= | sort | uniq -c | sort -rn | head -40`). For the table, count each file's
+lines and its commits in the last 90 days.
 
-```bash
-git ls-files -z | xargs -0 wc -l | grep -v ' total$' | sort -rn
-```
+**2. Write down your own review.** Read each file in full, following the callers and callees a claim depends on. Look hardest
+where reading beats counting: a comment the code does not keep, a guard against repeats keyed coarser than the unit that repeats,
+arithmetic that can overflow, error and cancellation paths that skip cleanup. Call a file clean only where you traced it. Write
+the review items down now; once you see the scan, change them only by withdrawing an item found wrong, with its reason.
 
-If git fails (not a git checkout), fill up with the largest production files you can list, and say so.
+**3. Collect the scan's findings in those files.** Call `cca:list_findings` with `limit` 500, walking `offset` to
+`totalMatching`, and keep the findings in the 6 files. For each, keep `maintainerNote` (a maintainer confirmed the finding: never
+dispute it) and `refusedResolution` (a resolution the scan refused). Call `cca:get_architecture` with `path` only for a finding
+about files changing together that names no partner.
 
-**2. Your own review.** Read the 10 files in full and list review items: defects, security problems, duplication,
-complexity and dead code, each with file and line. Write the list into the conversation now; it does not change once you see
-the scan.
+**4. Sort the findings into piles, grade them and send back disputes and gap reports.** Treat a review item and a finding as the
+same problem when they are in the same file, within 5 lines, and of the same kind; put each such pair in the pile found by both.
+- **Found only by the scan.** Read the cited lines (and the other half of a copy), then grade the finding. Call `cca:get_finding`
+  only when the finding does not name enough to verify it, or for security (`cwe`, `owaspCategory`). If a maintainer's acceptance
+  covers it, verify that its note names this instance; say so when one was swept in without a reason of its own. Say why the
+  review missed each. For one that does not hold, call `cca:dispute_finding` with its fingerprint and a `reason` naming what is
+  there and what the scan could have verified.
+- **Found only by the review.** Look at each item a second time and withdraw any that fails. For each high or medium item left,
+  call `cca:report_detector_gap` with `dimension` (the nearest, or a few words), `title`, `file` and the argument as `description`.
+- **Silent dimensions.** For the dimension nearest each high or medium review-only item (at most 3), call `cca:get_dimension`.
+  Its `measured` values say what the scan looks at there, so the document can say why it was silent; its `peers`, when present,
+  say whether that dimension score is usual.
+- **Blast radius.** For the module of each of the first two fixes, call `cca:get_architecture` with `module`; its blast radius
+  says whose tests the fix must run.
 
-**3. The scan's findings in those files.** `cca:audit`: keep `scan` (commit and date) and `inventory.productionLines`, the production lines the scan read in the whole repository.
-Then `cca:list_findings` with no filter, walking every page with `offset` until `totalMatching` is reached, and keep the findings
-whose file is one of the 10. If none are: both scan piles are empty; say so and go on.
-
-**4. Sort into three piles and follow up.** Found by both; found only by the scan; found only by the review. A review item and a
-finding are the same problem when they name the same file, lie within 5 lines of each other and describe the same problem;
-otherwise they go in separate piles.
-- Found only by the scan: `cca:get_finding` with its fingerprint, then read the cited lines and say whether it holds. One that
-  does not: `cca:dispute_finding` with its fingerprint and your evidence, naming what in the code the scan could have checked.
-- Found only by the review: take a second look. Each review item you still believe: `cca:report_detector_gap` with `dimension`
-  (the dimension id of a scan finding of the same kind; with none, a few words naming the problem), `title`, `file` and your evidence as
-  `description`, and keep the receipt it returns. If the call fails: the review item is listed as not reported, with the reason.
-
-**5. Write the report** in this shape:
+**5. Write the document** in this shape:
 
 ```markdown
 # Review against the scan: <project>
+<Short answer, 2-4 sentences: how much the two overlap, what each was better at, the most serious problem and who found it.>
+Scan of <commit>, <date>; it read <productionLines> lines of shipped code; <n> resolutions were refused (<in these files or
+not>). This review read 6 files, <lines> lines.
 
-Files read: <n> files, <lines> lines (counted with wc -l). Production lines the scan read in the repository: <inventory.productionLines>, scan <commit>, <date>.
-
-## Found by both (<count>)
-<Each: file, line, what.>
-## Found only by the scan (<count>)
-<Each: holds, or disputed with the reason.>
+## What was read and why
+| File | Lines | Changes in 90 days | Why it matters |
+|---|---|---|---|
 ## Found only by the review (<count>)
-<Each with its receipt, or "not reported" and why.>
-
-## What this shows
-<What the scan found that the review missed, and what the review found that the scan missed, without softening either.>
+<Most serious first: file:line, what happens, consequence, severity, confirmed or plausible with its test.>
+Withdrawn: <one line each with the reason, or "none">. Found clean: <one line>.
+## Found only by the scan (<count that hold, kept on purpose included>)
+<Each: what, its grade, and why the review missed it.> Disputed, not counted: <each with its reason, or "none">.
+## Found by both (<count>)
+<Each shared problem, or one line: "None: <why the two did not meet>".>
+## Where each was better
+<The scan: ... The review: ... For each review-only problem, what the scan measures there and its dimension score.>
+## What to fix first
+<Numbered: confirmed before plausible, most serious first; each a title someone could file, the fix, the test that proves it,
+and for the first two fixes how many parts of the code depend on it and what that means.>
 ```
 
-**For a reader who does not write code:** the short version first, with the same numbers as the body; no tool names,
-fingerprints, commit hashes or dimension ids; write a receipt as "reported, reference kept"; say what was not covered as plainly
-as what was.
-
-**6. Check the report and add the closing paragraph.** Check: each count matches its list; the review was written before step 3; every disputed finding has its
-call and every reported review item its receipt; the lines read are counted, not estimated; nothing in "What this shows" is
-softer than the piles; a disputed finding counts in no total of problems. Fix what fails and check again. Then end with a short paragraph on what the server gave this answer: only the `contribution` items that changed
-it, each as what the report would otherwise have got wrong or lacked, with its number or file. If none changed it, leave it out.
+**6. Verify the document, then write the note to the person.** Verify that each heading count equals its list, the short
+answer's numbers agree with the piles, every scan-only finding has a grade, and "Where each was better" is as plain as the piles,
+with no softening. Correct the document and verify it again. Then, after the document and addressed to the person who asked, not
+inside it, write:
+- One line on the disputes and gap reports sent, with their receipts, or the ready text where a tool was missing. For a tool that
+  errored or returned something impossible, call `cca:report_platform_issue` (or give its ready text).
+- A short paragraph on what the server gave: only the `contribution` entries that changed the answer, each as what the review
+  would otherwise have got wrong or lacked, with its number or file. Lead with scan-only problems that hold and with a maintainer
+  decision that changed a grade; never let the line count stand alone. If nothing changed the answer, leave the paragraph out.
 
 ## Examples
 
-For the developer who asked:
+For the developer who asked (trimmed):
 
-> **Found only by the scan.** `src/cache/store.go`: a lock is taken on line 88 and not released on the error path at line 97.
-> Holds; the review missed it because it followed only the happy path. `src/api/auth.go` line 52, "hard-coded secret": disputed;
-> the string is the name of an environment variable, not its value, and the scan could have checked the `os.Getenv` call around it.
->
-> **Found only by the review.** `src/api/orders.go` line 140: the page size from the query string is never capped. Reported,
-> receipt `gap-3f19`. `src/api/orders.go` line 211: an error from `tx.Rollback` is dropped. Not reported: the call failed
-> (server timeout).
->
-> **What this shows.** In 10 files (3,412 lines, counted with wc -l) the scan found 14 findings (scan `8d2e41b`, 12 Nov) and the
-> review found 9 review items; 6 are in both. 8 were found only by the scan, 1 of them disputed, among them concurrency and history problems a
-> single reading cannot see. The review found 3 the scan missed, among them an input check it has no rule for; 2 are reported.
->
-> Without the scan, this review would have missed the lock left held on line 97 of `src/cache/store.go`.
+> # Review against the scan: billing-api
+> They barely overlap. The scan found copied code the review could not see; the review found the most serious problem: a
+> retried payment can be charged twice.
+> Scan of 4be2c91, 2026-03-02; it read 41,200 lines of shipped code; 0 resolutions were refused. This review read 6 files,
+> 2,140 lines.
+> ## What was read and why
+> | File | Lines | Changes in 90 days | Why it matters |
+> |---|---|---|---|
+> | `src/pay/charge.go` | 412 | 23 | Every payment passes through it |
+> ## Found only by the review (4)
+> `src/pay/charge.go:118`, high, confirmed: the retry after a timeout builds a new idempotency key (line 121), so the provider
+> treats it as a new charge.
+> ## Found only by the scan (2)
+> `src/pay/charge.go` and `src/pay/refund.go:40-62`: one validation copied twice, and the copies have drifted (only `charge.go`
+> checks the currency). Holds; the review never opened `refund.go`. Disputed, not counted: none.
+> ## Found by both (1)
+> `src/pay/client.go:77`, medium: the HTTP client has no timeout.
+> ## Where each was better
+> The scan: copies across files. The review: retries; the scan's repeat-safety dimension scores 10/10 because a key exists at all.
+> ## What to fix first
+> 1. "Charge retry builds a new idempotency key": build it once, before the loop; a test that times out the first call proves
+> it. Nine parts of the code depend on the payment code, so run their tests with the fix.
 
 For a manager who does not write code:
 
-> **What this shows.** In ten of the busiest files, the scan found 13 problems that hold (and 1 more that is disputed) and the review found 9; 6 were found by both
-> (scan of 12 November). 7 were found only by the scan, among them a lock left held when an error occurs. The review caught
-> 3 the scan missed; 2 were reported, reference kept, and 1 could not be reported because the server did not answer.
->
-> Without the scan, the review alone would have missed 7 of the 16 problems that hold in these files (the disputed one left
-> out).
+> In the six files that carry payments, the review found 4 problems and the scan 2 that hold; 1 was found by both. The most serious,
+> found only by the review: a retried payment can be charged twice. Only the scan showed that one validation was copied and has drifted.

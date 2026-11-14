@@ -1,146 +1,162 @@
 ---
 name: before-ship
-description: "Decides whether the code is ready to ship, release or deploy: checks secrets, vulnerable dependencies, reachable security bugs, refused fixes and debug settings that would ship, lists what must be fixed before shipping and what can wait, and offers to fix what must be fixed before shipping. Use whenever someone asks if it is safe to deploy, ready for production, ready to release or launch, whether any secrets or vulnerable packages would go out, or what blocks going live. Uses the cca MCP server's tools."
+description: "Decides whether the code is ready to ship, release or deploy: checks the repository's own release gate at the release commit, whether the application can start and is safe in its production settings, secrets, vulnerable or malicious dependencies, reachable security bugs, refused fixes and how a bad release is rolled back, then lists what must be fixed before shipping, the steps to get to ready and what can wait. Use when someone asks if it is safe to deploy, ready for production, ready to release or launch, whether any secrets or vulnerable packages would go out, or what blocks going live. Uses the cca MCP server's tools for the facts reading cannot give."
 ---
 
 # Ready to ship?
 
-**Defaults.** Reader: the person who asked, who writes code and decides whether to ship now. Period: the latest scan plus any
-uncommitted changes. Form: Markdown in the chat. The person's own words win over these defaults: the reader, the focus and the
-form (a PDF or a document: make the file with what your tool has, or say it cannot). When something is missing, take the default,
-do the work and say in one line which default you used; never hand the person a list of technical options to choose from.
+The reader decides whether to ship now. The repository carries most of the answer; the cca server adds current advisories,
+the whole tree scanned for secrets and security bugs, resolutions the scan refused, and what depends on a change.
 
-**Words.** The **server** is the cca MCP server (tools `cca:<tool>`). A **scan** is one analysis of the repository by the server, named by commit and
-date. A
-**finding** is one problem at one place; a **cause** groups findings with one fix. The **plan** is the ranked list of causes in
-`cca:audit`, each with its point gain and effort. **Security findings** are those of `D13` (secrets in the code), `D28` (secrets
-in the git history), `D29` (security bugs), `D30` (vulnerable dependencies), `D31` (container and infrastructure configuration)
-and `D32` (personal data). **Drift** is a `closes-cycle` or `points-outward` verdict from `cca:check_dependencies`; a **new dependency**
-is a `new-dependency` verdict from it.
+## Words
+- **scan**: one analysis of the repository by the cca server, named by its commit and date.
+- **check**: one thing a scan measures, named by its id. The tools take that id as `dimension`; `cca:audit` gives each check's
+  score (0 to 10) in `lenses`. **Security checks**: `D13` secrets in the code, `D28` secrets in the git history, `D29` security
+  bugs, `D30` vulnerable dependencies, `D31` container and infrastructure settings, `D32` personal data, `D43` malicious
+  dependencies, `D44` a platform without security fixes.
+- **start-up guard**: code that refuses to start the application unless a condition holds.
+- **module**: a namespace or package, as a file declares it; to the reader, "part of the code".
+- **release gate**: what the repository's docs require before a release (test tiers, smoke test, sign-off), and when a gate
+  run counts. **gate run**: one recorded execution of the gate's test tiers.
+- **in the release**: `git merge-base --is-ancestor <commit> <release>` exits 0, executed in this session.
+- **base**: where this release starts, the first of these that exists: the newest tag reachable from the release commit
+  (`git describe --tags --abbrev=0 <release>`); else a deployed commit the repository records or the person names; else the
+  newest commit in the release with a counted full gate run. Use the same base for the diff, the modules and the trend.
+- **drift**: a new module dependency in the uncommitted changes that `cca:check_dependencies` marks as drift.
 
-## Rules for this skill
-
-- **Scan and reading apart.** Name the scan for what it found and the files for what you read; never merge the two.
-- **Numbers.** Every number comes from the server's answer or a count you made; every point or effort figure from the plan.
-- **Findings.** A finding is measured the same
-  way on every repository: never call a correct one a matter of taste. Never explain how the score is counted; say what was
-  found and what it means.
+## Rules
+- **Signing in.** If the server's tools are missing or ask you to sign in, stop before you write anything and tell the person in
+  one line: in Claude Code, type /mcp, choose cca and sign in (a server added during this chat may need a new chat). Write
+  without the scan only if they ask, and then say at the top that it was not used.
+- **Defaults.** The person's own words win over these defaults: a reader who writes code and decides; the release commit the
+  deploy path ships plus uncommitted changes; Markdown in the chat (for a PDF or document, make it, or say your tool cannot); a
+  named day is the next such day. Say in one line which default you took; never hand over a list of technical options.
+- **One verdict.** Write "Not yet" when anything meets the Fix before shipping list, from scan or reading; else "Ready".
+- **Verified claims.** Read or execute here every file, line, command, commit and count you state; write "in the release" and
+  "N commits back" only after seeing the exit code. When a doc disagrees with the code or the run records (a duration, a
+  comment), the code or the measured value decides: give it and name the stale line.
+- **Scan and reading apart.** Put "the scan of <commit>, <date>" beside a scan fact, and the file and line beside a fact you
+  read. When your reading shows a finding wrong, call `cca:dispute_finding` with the evidence and leave the finding out. Never
+  explain how the overall score is counted.
+- **Voice.** Write to the reader about the release: no "I", no overall score, no check that does not change the decision.
 
 ## What goes under Fix before shipping
-Only what meets one of these rules:
-- an open finding with a `refusedResolution` (an earlier fix that the scan found again);
-- a secret (`D13` in the code, `D28` in the history), or a `D29`, `D31` or `D32` finding a user or outside caller can reach;
-- a `D30` dependency with a known vulnerability in code that ships;
-- debug settings or test credentials in the configuration that ships;
-- drift, or a `new-dependency` verdict you cannot give a plain reason for.
-
-**Can wait** names at most the plan's first three causes not under Fix before shipping, one line each.
+Only these: the gate has no counted passing run in the release, or code the gate covers changed since that run; the
+application cannot start, or starts unsafe, with production settings (a start-up guard met only by a test double, a
+non-production mode needed to boot, no sign-in on a public deploy); a secret (`D13`, `D28`), a malicious dependency (`D43`), a
+reachable `D29`, `D31` or `D32` finding, a `D30` vulnerable dependency that ships; an open finding with a `refusedResolution`;
+debug settings or test credentials that ship; drift. Order the items by lead time: a decision or feature first, then the gate
+run, then quick fixes.
 
 ## Workflow
-
-Copy this checklist and tick it off:
-
 ```
 Before-ship progress:
 - [ ] 0. Read the scan
-- [ ] 1. Refused fixes
-- [ ] 2. Security findings
-- [ ] 3. Read the code
-- [ ] 4. Uncommitted changes
-- [ ] 5. Configuration and start-up
-- [ ] 6. Write the verdict
-- [ ] 7. Check the verdict
+- [ ] 1. Release commit, base, what is going out
+- [ ] 2. Release gate and its evidence
+- [ ] 3. Deploy path and rollback
+- [ ] 4. Production start-up and settings
+- [ ] 5. Security
+- [ ] 6. Uncommitted changes
+- [ ] 7. Write it
+- [ ] 8. Review, then the lines for the person who asked
 ```
 
-**0. Read the scan.** `cca:audit`: keep `scan` (commit and date), the plan and `queue.resolutionsRefused`. If the server's tools
-are missing or say you must sign in, stop before you write anything and tell the person in one line: in Claude Code,
-type /mcp, choose cca and sign in (a server added during this chat may need a new chat). Write without the scan only if they ask,
-and then say at the top that it was not used.
+**0. Read the scan.** Load the tools named below in one tool search, then call `cca:audit`; if it asks you to sign in, follow
+the Signing in rule. Keep `scan`, the security checks' scores, the `plan` rows, `queue.resolutionsRefused`, `gapReports.latest`
+(a title "<check> was not measured for <language>" is a gap, not a clean result) and `contribution`. Leave the rest unread.
 
-**1. Refused fixes.** If `queue.resolutionsRefused` is 0, go to step 2. Otherwise `cca:list_findings` with `state` `open`, every
-page by `offset` up to `totalMatching`; keep each row whose `refusedResolution` is not null, with its note.
+**1. Release commit, base, what is going out.** Find the release commit and the base, and say which base rule applied. If the
+scan's commit is not the release commit, count the commits after it and offer `cca:request_rescan` with `branch` (then
+`cca:get_branch_preview`); never call those commits clean. From `git diff --numstat <base>..<release>`, take the commits, the
+files, the user-facing parts (screens, endpoints, public API), and the three modules with the most changed lines in production
+files (not tests), by the namespace or package those files declare.
 
-**2. Security findings.** `cca:list_findings` with `dimension` set to each of `D13`, `D28`, `D29`, `D30`, `D31`
-and `D32` in turn and `state` `open`, every page by `offset` up to
-`totalMatching`. `cca:get_finding` with the fingerprint for each whose message does not say what and where.
+**2. Release gate and its evidence.** Read the repository's release and deploy docs, run records, CI runs and tags. For each
+recent full gate run, note its commit, tiers, result, duration, the `--is-ancestor` exit code, and each validity rule the
+docs give (such as load at start). A gate run on a commit outside the release still counts when a copy in the release (a
+commit with the same subject) exists and `git diff --stat <run> <copy>` shows they differ only in run-record files. Do not
+start a long suite; put it in Steps to ready with the duration the records show.
 
-**3. Read the code.** Open every file the findings of steps 1 and 2 name: can a user or an outside caller reach it, and what does
-the fix take? One that does not hold: `cca:dispute_finding` with your evidence; it then leaves Fix before shipping.
+**3. Deploy path and rollback.** From the CI and deploy files, find the trigger (a push to the default branch may already have
+shipped; then Steps to ready names a re-run or a manual deploy), the health check, and what rollback catches and what it cannot
+(a release that starts but behaves wrong, schema or data the new release wrote, a first deploy).
 
-**4. Uncommitted changes.** If `git status --porcelain` prints nothing, go to step 5. Otherwise call `cca:check_dependencies` with
-the output of `git diff -U100000 HEAD` (whole files as context, so the server sees each import in
-place) and keep each dependency's verdict. Files marked `??` are not in that diff: name them under
-Not checked. If the call fails: put the uncommitted changes under Not checked.
+**4. Production start-up and settings.** Read the entry point and the shipped settings: start-up guards, behaviour by
+environment, sign-in, debug flags, credentials. Follow each start-up guard to what satisfies it, in production code or in a test.
 
-**5. Configuration and start-up.** Read how the application is configured and started (environment, build and deployment files)
-for debug settings or test credentials that would ship.
+**5. Security.**
+- For each security check below 10, and for every security check when `queue.resolutionsRefused` is above 0: call
+  `cca:list_findings` with `dimension`, `state` `open`, reading all pages by `offset` up to `totalMatching`. Call
+  `cca:get_finding` for a listed finding that does not say what and where. Open each file and decide whether a user or an
+  outside caller can reach the code. Never list findings for checks outside the security checks.
+- Treat a security check at 10 with no gap report as clean. Call `cca:get_dimension` with `D30` and quote `measured` as the
+  scope beside the date. Report `D43` from its audit score alone.
+- Call `cca:get_trend` and compare the trend entry at the base commit (or the oldest entry) with the newest. Put a security
+  check that fell under What is going out, with the commits between those two entries; a fall across one of `marks` is a
+  change in measuring: quote that mark's `sentence`. A move between two neighbouring entries with no commit and no mark between
+  them stays out of the document; report it with `cca:report_platform_issue` (`area` "scan-pipeline",
+  `title` "Unexplained trend move").
+- Call `cca:get_architecture` once without `module` for each module's used-by count. For each step-1 module used by others,
+  call it again with that exact `module` for its blast radius. Name those dependent modules in What is going out and in the
+  smoke test of Steps to ready.
 
-**6. Write the verdict.** For a reader who writes code:
+**6. Uncommitted changes.** Call `cca:check_dependencies` with the output of `git diff -U100000 HEAD`. Write untracked files,
+and a failed call, under Not checked.
+
+**7. Write it.** Fill this template; it carries the detail.
 
 ```markdown
-**<Ready | Not yet>**: <one line why, with the scan's commit and date>
+**<Ready | Not yet>**: <one line why>, release commit `<sha>`.
 ## Fix before shipping
-1. <Where> - <why it matters> - <what to do>
+1. **`<file:line or doc>`: <what is wrong>.** Why: <evidence, files and lines>. On the deploy: <consequence, incl. rollback>.
+   Do: <the fix; for a feature, the decision and its options>. <A stale comment or doc here: the right value, the stale line.>
+## Steps to ready
+<Ordered, each with its measured duration: the decision, the commands on the live server, the gate and its validity rule, the
+smoke test weighted to changed parts and dependents; for a later day, `cca:request_rescan` the day before, for that day's
+advisories.>
+## What is going out
+<Release commit and whether it may be live; scan of <commit>, <date>; base and which rule chose it; commits, files, user-facing
+parts, the three modules and what depends on them; security checks with their scope; a security change since the base.>
+## If it goes wrong
+<What rollback catches and what it cannot.>
 ## Can wait
-<At most the plan's first three causes not under Fix before shipping, one line each, with points and effort; "Nothing" if the plan is empty.>
+<Plan rows with `openInstances` above 0, at most three: what it fixes, `impactPoints`, `effort`. With none: "Nothing that affects
+this release", and one line on what remains open (disputes awaiting a ruling, open findings outside security).>
 ## Not checked
-<What neither the scan nor your reading covered.>
-I can fix the Fix before shipping list now, one item at a time.
+<Gaps the scan reported, checks it did not score, the live server's settings, CI results you could not read.>
 ```
+With Fix before shipping empty, write "Nothing." there and leave out Steps to ready. For a reader who does not write code, use
+the second example's form.
 
-When Fix before shipping is empty, write "Nothing." under it and leave out the offer line.
-
-For a reader who does not write code: no tool names, fingerprints, commit hashes or dimension ids; say what was not checked as
-plainly as what was.
-
-```markdown
-**<Ready | Not yet>**: <one line why, with the scan's date>
-1. <What is wrong, in plain words>. <What the team does about it.>
-Can wait: <the same causes, in plain words, one line>. Not checked: <one line>.
-```
-
-When nothing must be fixed first, write "Nothing must be fixed first." in place of the numbered list.
-
-**7. Check the verdict.** Check: "Ready" only if Fix before shipping is empty; every item there meets a rule under What goes under
-Fix before shipping; in the first template every item says where, why and what, in that order, and in the second what is wrong
-and what the team does; every file named exists; every effort or point figure comes from the plan; scan facts and your reading
-are kept apart. Fix what fails and check again.
-
-**Closing paragraph.** End with the closing paragraph the server's instructions describe, from the `contribution` items that changed this answer.
+**8. Review, then the lines for the person who asked.** Confirm: "Ready" only if Fix before shipping is empty; each item meets
+the list, says where, why and what, and stands in lead-time order; you saw every file, line, exit code and duration; the
+document has no first person. Correct the document and review it again. Then, after the document and marked as for the person
+who asked, add: one offer that fits ("I can fix these now, one at a time"), the closing paragraph the server's instructions
+describe, from the `contribution` items and gap reports that changed this answer, and the ready text of any refused write call.
 
 ## When the person says fix
-
-Fix one item at a time; `cca:resolve_finding` with its fingerprint and a note on what changed. A secret in the git history cannot be
-resolved by an edit: rotate it and say so. After the last item, one `cca:request_rescan`, then `cca:audit`. With a new `scan`:
-check that `queue.resolutionsRefused` did not rise and `cca:get_finding` returns null for each fixed fingerprint; reopen what
-failed and write the verdict again. With the old `scan`: say the fixes are made and the next scan checks them.
+Take one item at a time and call `cca:resolve_finding` with its fingerprint and what changed (for a secret in the git history:
+rotate it, and say so). Then call `cca:request_rescan` once; when `cca:audit` shows a new `scan`, confirm that
+`queue.resolutionsRefused` did not rise.
 
 ## Examples
-
-For the developer who asked:
-
-> **Not yet**: one secret is in the code and one dependency has a known remote exploit (scan `8d2e41b`, 12 Nov).
->
+> **Not yet**: Production refuses to start and the release gate has not run on this code, release commit `8d2e41b`.
 > ## Fix before shipping
-> 1. `config/settings.py` line 14 - a live payment API key is committed and ships in the image - move it to the environment and
->    rotate the key.
-> 2. `package.json` - `express-fileupload` 1.1.7 has a known remote code execution flaw, reachable from the upload form - raise it
->    to 1.4.0.
-> ## Can wait
-> The three largest classes in `src/orders/` (plan: 3.1 points, medium effort).
-> ## Not checked
-> Whether the production environment sets its own secrets; the scan does not see the server.
->
-> I can fix the Fix before shipping list now, one item at a time.
->
-> Without the scan, this verdict would have missed the payment key, which sits in a settings file no recent commit touched.
+> 1. **`src/Host/Startup.cs:44`: the server will not start in Production.** Why: the guard needs a real sign-in and only a
+>    test double provides one (`tests/Host/AuthTests.cs:31`). On the deploy: it fails the health check and rolls back; a first
+>    deploy has nothing to roll back to. Do: build sign-in, or decide in writing to release to invited testers only.
+> 2. **`docs/release.md`: no green `make test-all` in the release.** Why: the last one, `51c0a9e`, is outside it (merge-base
+>    `7f3a210`, 22 commits back, exit 1). Do: run it on `8d2e41b` (52 to 70 minutes in the run records; the README's "15
+>    minutes" is stale).
+> ## What is going out
+> Base `v2.3.0` (newest tag): 22 commits, 41 files. Most changed: checkout (180 lines), used by orders and invoices.
 
-For a client who does not write code:
+For a reader who does not write code:
 
-> **Not yet**: two problems must be fixed first (scan of 12 November).
-> 1. A payment password is stored inside the program, so anyone with a copy can use it. The team moves it out and changes it.
+> **Not yet**: two things must happen first (scanned 12 November).
+> 1. The live server would refuse to start, because real sign-in is not built yet. Starting it another way would let anyone act
+>    as any user. The team builds sign-in first or opens the release only to invited testers.
 > 2. A component used for uploads has a known flaw that lets an outsider take over the server. The team updates it.
-> Can wait: tidying three oversized parts of the order handling. Not checked: how the live server is set up, which the scan
-> cannot see.
->
-> Without the scan, this answer would have missed the payment password, which no one had looked at this year.
+> Before release: the full test run and a manual test of checkout, orders and invoices. If it goes wrong: the old version comes
+> back by itself only if the new one fails to start. Not checked: how the live server is set up.

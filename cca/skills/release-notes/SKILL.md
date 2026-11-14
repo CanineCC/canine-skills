@@ -1,35 +1,51 @@
 ---
 name: release-notes
-description: "Writes release notes for the people who use the product: what is new, what changed, what was fixed, what security issues were closed or remain, and what they must do before upgrading. Use whenever someone asks for release notes, an update for customers or users, what a release or sprint gave customers, or a customer-facing changelog, in any form (a PDF, a document, an email). Uses the cca MCP server's tools."
+description: "Writes release notes for the people who use the product: what is new, what changed, what was fixed, whether they are safe, what is still known to be wrong, and what they must do before upgrading. Use when someone asks for release notes, an update for customers or users, what a release or sprint gave customers, or a customer-facing changelog, in any form (a PDF, a document, an email). Uses the cca MCP server's tools for the security status only a scan can give."
 ---
 
 # Release notes
 
-## Words
-- **users**: the people who use the product and do not write code. **operators**: the people who host or run it.
-- **server**: the cca MCP server; its tools are named `cca:<tool>`. A **scan** is one run of it over the repository, named by
-  its commit and date. A **finding** is one problem the scan found at a place in the code.
-- **security dimensions**: the kinds of check whose findings are security findings: `D13` secrets in the code, `D28` secrets in
-  the git history, `D29` security bugs found by static analysis, `D30` dependencies with known vulnerabilities, `D31` container
-  and infrastructure configuration, `D32` personal data.
-- **trend point**: one scan on the trend, with its `headline` (the quality score; the notes call it "the quality score"). A **mark** is a point on the trend where the
-  way of measuring changed, with its own move `headlineDelta`. An **unexplained move**: two neighbouring trend points whose
-  headline differs with no commit and no mark between them (an empty `git log <commit a>..<commit b>`); its size is the later
-  headline minus the earlier.
+After one read, the reader must know what this release gives them, which problems they will no longer meet, whether they
+are safe, what is still wrong and what, if anything, they must do. The commits carry the notes; the server adds what
+reading cannot: whether known security problems remain, compared with vulnerability records newer than any commit message.
 
-## Rules for this skill
-- **Signing in.** If the server's tools are missing or say you must sign in, stop before you write anything. Tell the person in
+## Words
+- **server**: the cca MCP server; its tools are `cca:<tool>`, and its answers can carry `contribution` items, each saying
+  what it added. A **scan** is the server's analysis of one commit, named by that commit and its date. A **finding** is one
+  problem a scan found, in a **state** such as "open".
+- **security dimensions**: the `dimension` ids `D13` secrets in code, `D28` secrets in git history, `D29` security bugs, `D30`
+  vulnerable packages, `D31` container settings, `D32` personal data. A dimension is **not measured** when the scan did
+  not measure it for a language; no id appears in the notes.
+- **the person** asked for the notes; **the reader** reads them. An **entry** is one line or paragraph of the notes.
+
+## Rules
+- **Signing in.** If the server's tools are missing or ask you to sign in, stop before you write anything. Tell the person in
   one line: in Claude Code, type /mcp, choose cca and sign in (a server added during this chat may need a new chat). Write
-  without the scan only if they ask, and then say at the top that the scan was not used.
-- **Defaults.** Reader: users; operators get the "For operators" section. Range: from the last tag to HEAD, or,
-  with no tag, over the last two weeks ("the last sprint" is the last two weeks unless a tag or date says otherwise). Form: a
-  reply in the chat. The person's own words win over these defaults: the reader, the focus, the range and the form (a PDF or a
-  document: make the file with what your tool has, or say it cannot). When something is missing, take the default, write the
-  notes, and say in one line which default you used. Never hand the person a list of technical options to choose from.
-- **Scan and reading.** Keep apart what the scan measured (name the scan by its date) and what you read in the commits and files. A security
-  finding your reading shows is wrong: call `cca:dispute_finding` with your evidence and leave it out of the notes. Never explain how the score is counted; say what was found and what it means.
-- **Numbers.** Every number comes from the server's answer or a count you made with git; a number names its scan or date.
-- **Users.** The short version first. No tool names, file paths, commit hashes, dimension ids or internal names.
+  without the scan only if they ask, and then say after the document that open security problems were not looked up.
+- **Defaults.** Reader: users, in the README's word for them. Range: the most recent tag to HEAD, or, with no tag, over the last two weeks (also for "the last sprint", unless a sprint doc says otherwise). Form: Markdown in the chat.
+  The person's own words win over these defaults: the reader, the focus, the range and the form. For a PDF, make the file
+  with the tools at hand, or say in one line that none was made; "PDF-ready Markdown" is the Markdown itself, never in a
+  code fence. Take a default rather than ask; never hand the person a list of technical options.
+- **Size the notes to the reader.** Readers who only use the product (players, shoppers, members): one page, no "For
+  operators", no package names or headers, Security in two or three sentences; anything a host must do goes to the person
+  after the document. Readers who may host it themselves (customers, users of a self-hosted product): add "For operators",
+  at most four bullets, each something to do or that they will notice.
+- **A change users notice.** A change gets an entry only if its diff changes what ships (product code, its styles, texts
+  or settings). A change to tests, fixtures, CI, docs or tooling alone is internal, whatever its title says. A server fix
+  counts when users would have seen the fault (a record lost, something counted twice). A guard against a fault that
+  cannot have happened is not a fix.
+- **Every claim has a source.** Each entry comes from a commit body, diff or file you read. Keep the commit's own condition,
+  not its test's example ("an order with only free items", not "a two-item order"; "moving between addresses without
+  leaving the screen", not "moving between screens"). Write "every" or "all" only if the commit says so and names no
+  exception. A fix that stops new damage says that damage made before it remains, unless a commit removes it. When two
+  commits disagree, the later one wins.
+- **Still wrong at HEAD.** A known issue comes from a commit body or an open ticket saying something still fails, and holds
+  only if the file at HEAD still shows it (`git log <commit>..HEAD -- <file>`, then read the file); otherwise it is Fixed.
+  A side effect the team has not decided to publish ("two status colours now look alike") goes to the person, not the notes.
+- **Users' words.** Say what the user saw before and sees now. No file paths, hashes, class names, finding ids or developer
+  words (listener, handshake, schema, refactor) outside "For operators".
+- **Voice.** The document talks to its reader. Write nothing before it; no "I", no line on how it was made, no scores.
+  Everything for the person goes after the document.
 
 ## Workflow
 
@@ -37,93 +53,104 @@ Copy this checklist and tick it off:
 
 ```
 Release notes progress:
-- [ ] 0. Server answers (Signing in)
-- [ ] 1. Read the git history of the range
-- [ ] 2. Security: fixed and still open
-- [ ] 3. What the code did
-- [ ] 4. Write the notes
-- [ ] 5. Check the notes and add the closing paragraph
+- [ ] 0. Load the tools and call cca:audit
+- [ ] 1. Find the range, the product's name and the reader
+- [ ] 2. Read every commit in the range and sort it
+- [ ] 3. Security: fixed, still open, not measured
+- [ ] 4. Write the notes from the template
+- [ ] 5. Verify, then write the lines for the person who asked
 ```
 
-**0. Server answers (Signing in).** Call `cca:audit` (no arguments) and keep its `scan`: the commit and date the server last
-scanned. If the tool is missing, fails or asks you to sign in: follow the sign-in rule.
+**0. Load the tools and call `cca:audit`.** If the tools are deferred, load `cca:audit`, `cca:list_findings`,
+`cca:dispute_finding` and `cca:report_platform_issue` in one tool search. Call `cca:audit` once and read only `scan` (its
+commit and `scannedAt`), `gapReports.latest` (each "<id> was not measured for <language>" names a security dimension that is
+not measured) and `contribution`.
 
-**1. Read the git history of the range.** Read each commit message in `git log <last tag>..HEAD` (with no tag,
-`git log --since="2 weeks ago"`; if git cannot read the history, tell the person in one line that the notes need the
-repository's clone, and stop). When a merge message does not say what changed, open `gh pr view <n>`. When that does not say what users will notice
-either, read the diff. Sort each change: new, improved, fixed, security, before you upgrade, for
-operators, or internal. If the range holds no commit: the notes are one line saying nothing changed since the tag or date; go
-to step 5.
+**1. Find the range, the product's name and the reader.** Take the range from Defaults. Put in the title the dates of the
+first and last commit inside the range, not the start of the two-week window. Take the product's name, its word for users,
+and whether people host it themselves from the README; take the version from the tag or package file, else write
+"<Month year> update". Run `git log <scan commit>..HEAD` to see whether the scan's commit is HEAD. If the clone has no
+history, tell the person the notes need the full clone and stop. If the range has no commit, say so in one line and stop.
 
-**2. Security: fixed and still open.** Call `cca:list_findings` once for each security dimension, with that dimension and
-`state` "open"; read `totalMatching` and walk the pages with `offset`. Sort each finding, testing in this order:
-1. reading shows the finding is wrong: follow Scan and reading;
-2. no commit after the step 0 scan touched its file (`git log <scan commit>..HEAD -- <file>` is empty, or the command fails
-   because the scan commit is not in this clone): **open**;
-3. a later change removes the problem: **fixed** (the next scan will confirm it); otherwise **open**.
+**2. Read every commit in the range and sort it.** Run
+`git log <range> --no-merges --date=short --format='--- %h %ad %s%n%b'` and read every body, not only `feat` and `fix`:
+refactor and test commits often fix what users saw ("no longer", "twice", "never"). Where a body does not say what users
+notice, read `git show --stat <h>` and the files it changed. Sort each change as new, improved, fixed, security, known
+issue, before you upgrade, for operators or internal, and keep each fix's date.
 
-A security change from step 1 with no finding (a dependency raised) is also fixed.
-If `cca:list_findings` fails: write Security from step 1 alone, and tell the person outside the notes that open security findings
-were not checked.
+**3. Security: fixed, still open, not measured.**
+- **Fixed.** Take these from step 2: a package updated past an advisory, a protection added, a hole closed. When the scan's
+  commit contains a package fix and `D30` has no open finding on that package, the notes may say no published
+  vulnerability remains.
+- **Still open.** Call `cca:list_findings` once per security dimension (`dimension` its id, `limit` 50), skipping those
+  step 0 found not measured. Keep the findings in state "open" or "blocked" (a maintainer confirmed it true), and page with
+  `offset` only while `truncated` is true. For each finding: if your reading shows it is wrong, call `cca:dispute_finding`
+  with the evidence and leave it out (if the call is refused, give the person the dispute text after the document); if no
+  commit after the scan touched its file, it is **open**; if a later change removes the problem, it is **fixed** (the next
+  scan confirms it). A finding carrying `refusedResolution` was marked fixed before and found again: keep its fix out of
+  Fixed.
+- **Not measured.** A security dimension that is not measured limits "nothing open": say so in plain words, in "For
+  operators" when the notes have it, otherwise after the document. If a tool fails or gives an answer that cannot be true,
+  write Security from step 2 alone, say that open security problems were not looked up, and give the person the
+  `cca:report_platform_issue` text (call it if allowed).
 
-**3. What the code did.** Call `cca:get_trend` (no arguments) and take the trend points dated inside the range. What the
-code did = the headline at the last of them minus the headline at the first, minus each mark's `headlineDelta` between them,
-minus each unexplained move between them (report each with `cca:report_platform_issue`, `area` "scan-pipeline", with both
-dates and headlines). Write it as one plain sentence under "For operators", with both dates and each mark's move apart. With
-fewer than two trend points, a mark without `headlineDelta`, or a failed call: leave the sentence out.
-
-**4. Write the notes** in this shape, in this order. The title takes the product's name from the README or package file
-and the version from the tag (with no tag, the date range). Leave out a section with nothing in it, and every internal change:
+**4. Write the notes from the template.** Leave out an empty section. Let the Highlights name the two or three biggest
+gains, and do not repeat them below in the same words. With more than six entries in a section, group them under `###` by
+the part of the product users know. Open with what the release gives users, never with the scan.
 
 ```markdown
-# <product> <version, or the date range>
+# <product> <version, or "<Month year> update">
 
-<One sentence: the most important thing this release gives users.>
+*Covers changes from <first commit date> to <last commit date>.*
 
-## New
-<What users can do now, in their words.>
+<One sentence, or up to three "Highlights" bullets.>
 
-## Improved
-<What works better.>
-
-## Fixed
-<What no longer goes wrong, with the date of the commit that fixed it.>
+## New / ## Improved / ## Fixed
+<Each: what the user saw before, what happens now, the date it was fixed.>
 
 ## Security
-<What this release fixes. Each open item users should know: what is affected and what to do. Never how it could be used
-against them.>
+<What this release fixes, in users' words. Each open finding: what is affected and what to do. Never how it could be used
+against them. Then: "The scan of <scan date> of <the latest version | the version of <date>> found no known security problem
+left open in the code or in the packages it uses, compared with public vulnerability records of that day"; when the scan
+is older than the last commit, say later changes were not scanned.>
 
-## Before you upgrade
-<Anything users must do.>
+## Known issues
+<What is still wrong that users may meet, and what to do meanwhile.>
 
-## For operators
-<Changes to hosting or running it, and what the code did from step 3 with its two dates.>
+## Before you upgrade / ## For operators
+<Only for readers who may host it. A setting to set, a version a host must use, a cleanup to do by hand.>
+
+## Behind the scenes  <one sentence, only if users would care: "Internal clean-up; nothing changes in how it works.">
 ```
 
-**5. Check the notes and add the closing paragraph.** Check, one by one:
-- every fix you claim is a change you read in step 1;
-- every security item called open or fixed was sorted by the step 2 rules against the step 0 scan;
-- every open security item says what is affected and what to do, and none says how it could be used;
-- every item is in the users' words, with no internal names, file paths, commit hashes or tool names;
-- what the code did appears only under "For operators", with its dates, and no mark's move or unexplained move is told as
-  the code's;
-- the range you used is stated, and the form asked for was made (or you said it cannot be).
+**5. Verify, then write the lines for the person who asked.** Verify each line below, correct what fails, then verify again:
+- every change users notice from step 2 has an entry (refactor and test commits too), and each passes "A change users notice";
+- every entry keeps its commit's condition; every known issue holds at HEAD; the size fits the reader;
+- the Users' words and Voice rules hold; the form asked for was made (a PDF file, or the line saying why not).
 
-Fix each item that fails, then check the whole list again. When all pass, add the closing paragraph: a short paragraph on what
-the server gave these notes, only from the `contribution` items that changed them, each said as what the notes would otherwise
-have got wrong or lacked. If none changed them, leave it out.
+Then, after the document, write for the person, never inside the document for its reader: the range and any default
+taken; what is not measured or what a host must do, if it was left out for this reader; questions to settle before
+publishing, each concrete (two commits that disagree, by date, and what to try; a side effect to word); any dispute or
+platform text not sent; then a short paragraph on what the server gave, only from the `contribution` items that changed
+the notes, each as what they would otherwise have got wrong or lacked, with its date. If none changed them, leave it out.
 
 ## Examples
 
-For users. Input, a pull request title: `fix(export): stream pdf pages past 100 rows`. Output, under "Fixed":
+For shoppers: a refactor body says "a refund was summed twice after a page reload"; two packages were updated past
+advisories; the scan found nothing open and did not search the git history. Output:
 
-> Invoices with more than 100 lines now download as one PDF instead of stopping halfway (fixed 6 November).
+> **Refunds count once.** Reloading the page during a refund could add it to your total twice. Now it counts once (6 November).
+>
+> ## Security
+> The libraries that carry your payments to the server were updated past published security problems. The scan of
+> 13 November of the latest version found no known security problem left open, compared with public vulnerability
+> records of that day.
 
-Input, an open security finding on the sign-in page whose file no later commit touched. Output, under "Security":
+After the document: "The git history was not searched for leaked passwords, so 'nothing open' covers the code and packages
+only. Accounts closed before 5 November keep their stored files; whoever hosts the shop should remove them by hand."
+
+For customers who host it, with an open finding on the sign-in page whose file no later commit touched:
 
 > The sign-in page can still be loaded inside another website. Until the next release, sign in only at our own address.
-
-For operators, under "For operators":
-
-> The app now needs version 16 of its database; upgrade it before you install this release. Between the scans of 30 October
-> and 13 November the code itself raised its quality score by 2 points; a change in how it is measured added 1 more.
+>
+> **For operators:** accounts closed before 5 November keep their stored files. Delete those by hand.

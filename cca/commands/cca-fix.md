@@ -21,8 +21,10 @@ Loop:
 1. Call `next_task`. It gives you the next cause, fully briefed: what to do, every instance (file:line and fingerprint), the
    `causeKey` and a `progress` block. A packet carries at most 50 instances; when a cause has more, work them and call again.
 2. Give the cause **one of three endings**:
-   - **Fix it**: change the code at every instance, then `resolve_finding` each with a short note saying what you changed. The
-     next scan checks it, so never claim a fix you didn't make.
+   - **Fix it**: run the project's tests before you change anything, change the code at every instance, then run the tests
+     again. A test that passed before and fails now means the fix is not done: repair it or undo it. Then `resolve_finding`
+     each with a short note saying what you changed and that the tests still pass (or that the project has none). The next
+     scan checks the finding, not your tests, so never claim a fix you didn't make or a test run you didn't do.
    - **Dispute it**: `dispute_finding` only if the finding is wrong: what it describes is not there, or the scanner read code that
      is not the product's (a fixture, generated or vendored code, a developer script that never ships). Quote the code at the cited
      line as `evidence`, and say how the scanner could have known. Pass further instances of the same root cause as

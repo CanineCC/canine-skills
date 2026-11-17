@@ -11,7 +11,8 @@ held. Open source (MIT).
 **The easy way: ask your AI.** Paste this into your AI tool:
 
 > Get the Canine skills for me from https://github.com/CanineCC/canine-skills . In Claude Code: run `claude plugin marketplace add
-> CanineCC/canine-skills` and then `claude plugin install cca@canine`. In any other tool: copy the folders under `cca/skills` (each
+> CanineCC/canine-skills` and then `claude plugin install cca@canine`, then turn on their updates: in ~/.claude/settings.json, add
+> `"autoUpdate": true` to the `canine` entry under `extraKnownMarketplaces` (the first command wrote that entry). In any other tool: copy the folders under `cca/skills` (each
 > holds a SKILL.md) into the folder where you read skills; if you read no skills folder, add a line to AGENTS.md in my project saying
 > to read the matching skill there before writing about the codebase. Then tell me in one sentence what you did.
 
@@ -22,7 +23,14 @@ claude plugin marketplace add CanineCC/canine-skills
 claude plugin install cca@canine
 ```
 
-(Inside a session: `/plugin marketplace add CanineCC/canine-skills`, then `/plugin install cca@canine`.) The plugin brings the
+(Inside a session: `/plugin marketplace add CanineCC/canine-skills`, then `/plugin install cca@canine`.)
+
+**Keep them up to date.** Claude Code updates a marketplace that is not Anthropic's own only when you turn that on, once: type
+`/plugin`, open **Marketplaces**, pick `canine` and choose **Enable auto-update** (or add `"autoUpdate": true` to the `canine`
+entry under `extraKnownMarketplaces` in `~/.claude/settings.json`). New versions then arrive by themselves after a session starts.
+Without it, run `claude plugin marketplace update canine` now and then.
+
+The plugin brings the
 skills, the `cca` MCP server they read from and the `/cca-fix` command. Once installed, your AI picks a skill by itself when you ask
 for that kind of work, like any other skill: "write an onboarding note for Lasse", "is this ready to ship?", "release notes for our
 customers as a PDF".
@@ -39,8 +47,12 @@ One MCP server for every product: `/mcp/cca`.
   a key for that one repository; switch it off again on the product's "Set up your AI tool" page. A repository key from a
   product's AI tool page works too (`Authorization: Bearer`), as does an organisation's API key (`cca_…`), which gets the `/v1`
   API as tools instead of the fix loop. Allow `mcp__cca__*`.
-- **`/cca-fix`** works the repository's findings: `next_task` (security first), fix every instance, `resolve_finding` each,
-  dispute or accept what should not be fixed, until `next_task` returns nothing. The next scan checks each fix.
+- **`/cca-fix`** works the repository's findings: `next_task` (security first), fix every instance with the project's tests run
+  before and after, dispute or accept what should not be fixed, until `next_task` returns nothing. Every fix is checked by the
+  scan, the way your repository is worked: with branches or pull requests, it commits the fixes to a branch and checks them with
+  a branch preview (the scan of that branch: the findings must leave and none may arrive) before it resolves them; straight to
+  the default branch, it pushes there and asks for one new scan at the end, which is the check. It ends with that check of all
+  its work and the rules the code broke most often, so the next code keeps them.
 - **`/cca-scan`** starts a scan of the repository your working tree belongs to (matched by its `origin` remote) through the API,
   with your organisation's API key in `CCA_API_KEY` (scopes `account:read`, `scans:write`, `runs:read`, `results:read`; the
   address is `https://api.canine.dev` unless `CCA_API_URL` says otherwise), waits for the run and reads the scores and open
@@ -65,3 +77,20 @@ One MCP server for every product: `/mcp/cca`.
   what to ask the seller and what the seller should fix or disclose before closing. Where you have the code, your AI opens what the
   report points to. With no Assay key but the `cca` server connected, it writes the memo from that project's latest scan and says that
   nothing in it is verified.
+
+## What changed
+
+`/cca-fix` says which version it is, and the `cca` server says which version is the newest: when yours is older, your AI tells
+you once and goes on with the work. It never updates itself. To update in Claude Code: `/plugin marketplace update canine`, or
+switch on auto-update for `canine` under `/plugin`, Marketplaces.
+
+### cca 5.1.0
+
+- `/cca-fix` checks every fix with the scan, the way your repository is worked. With branches or pull requests, it puts the
+  fixes on a branch and checks them with a branch preview (a scan of that branch) before it marks anything fixed: the findings
+  must leave, and no new finding may arrive. Straight to the default branch, it pushes there and asks for one new scan at the end,
+  which is the check.
+- It runs your tests before and after each fix; a passing test that turns red means the fix is not done.
+- Its report ends with how the work was checked and the rules your code broke most often, so new code can keep them.
+- It never builds a checker of its own with its own limits: the scan is the check.
+- It tells you when a newer `/cca-fix` exists.

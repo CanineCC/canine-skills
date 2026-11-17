@@ -1,6 +1,6 @@
 {
   "name": "cca",
-  "version": "5.0.0",
+  "version": "5.1.0",
   "description": "Skills that work from the scan (compare: your AI's own review against the scan; sprint-planning: the next sprint from the scan) (they read from the cca MCP server, which you add yourself), /cca-fix to fix this repository's findings most important first, and /cca-scan to scan it",
   "author": {
     "name": "Canine"
